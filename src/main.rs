@@ -1,8 +1,8 @@
 use clap::{Arg, ArgAction, Command};
-use rust_cli_template::{do_stuff, Config};
+use rs_markdown::{do_stuff, Config};
 
 fn main() {
-    let command = Command::new("rust-cli-template")
+    let command = Command::new("rs-markdown")
         .author("Phil Lavoie")
         .about("This program doesn't do shit.")
         .arg(
