@@ -1,25 +1,12 @@
-#[derive(Debug)]
-pub struct Config {
-    pub flag: bool,
-    pub option: Option<String>,
-    pub positional: String,
-}
+pub(crate) mod parse;
 
-pub fn do_stuff(config: Config) {
-    println!("received config {:?}", config);
-}
+use nom::{error::Error, Parser};
+pub use parse::ast::Tree;
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_do_stuff() {
-        // Just checking it's not throwing.
-        do_stuff(Config {
-            flag: true,
-            option: Some(String::from("that's my option bro")),
-            positional: String::from("wold is pop"),
-        })
-    }
+// TODO: custom error type.
+pub fn parse(input: &str) -> Result<Tree, nom::Err<Error<&str>>> {
+    let mut parser = Tree::parser::<Error<&str>>();
+    let (remaining, tree) = parser.parse(input)?;
+    assert!(remaining.is_empty(), "Remaining input: {}", remaining);
+    Ok(tree)
 }
