@@ -14,6 +14,10 @@ impl<'a> AtxHeading<'a> {
         self.0.level
     }
 
+    pub fn segment(&self) -> &'a str {
+        self.0.segment
+    }
+
     pub fn title(&self) -> &'a str {
         self.0.title
     }

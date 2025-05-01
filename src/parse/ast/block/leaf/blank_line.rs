@@ -10,6 +10,10 @@ impl<'a> BlankLine<'a> {
         Self(segment)
     }
 
+    pub fn segment(&self) -> &'a str {
+        self.0 .0
+    }
+
     pub fn parser<Error: ParseError<&'a str>>() -> impl Parser<&'a str, Output = Self, Error = Error>
     {
         BlankLineSegment::parser().map(Self::new)
