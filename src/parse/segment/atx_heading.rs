@@ -1,9 +1,8 @@
+use crate::parse::utils::{is_char, line, up_to_n_whitespace};
 use nom::{
     bytes::complete::take_while_m_n, character::complete::space1, combinator::consumed,
     error::ParseError, sequence::preceded, IResult, Parser,
 };
-
-use crate::parse::utils::{is_char, line, up_to_n_whitespace};
 
 /// Represents an ATX heading segment.
 #[derive(Debug, Clone, PartialEq, Eq)]
