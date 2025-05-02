@@ -14,6 +14,13 @@ pub fn is_char(c: char) -> impl Fn(char) -> bool {
     move |i| i == c
 }
 
+/// Returns a predicate that is true when the character matches one of the characters
+/// provided as input.
+pub fn is_one_of(chars: &[char]) -> impl Fn(char) -> bool {
+    let chars = chars.to_vec();
+    move |i| chars.contains(&i)
+}
+
 /// Parses a line of text or until the end of the string if found.
 ///
 /// When a terminating line ending sequence is found, it is discarded from the
