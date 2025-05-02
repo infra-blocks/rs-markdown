@@ -1,10 +1,11 @@
+mod atx_heading;
+mod blank_line;
+mod thematic_break;
+
 use crate::{
     parse::ast::block::leaf::{link_reference_definition::LinkReferenceDefinition, Leaf},
     render::display_html::DisplayHtml,
 };
-
-mod atx_heading;
-mod blank_line;
 
 impl DisplayHtml for Leaf<'_> {
     fn display_html(
@@ -18,6 +19,9 @@ impl DisplayHtml for Leaf<'_> {
             }
             Leaf::BlankLine(blank_line) => {
                 blank_line.display_html(buffer, link_reference_definitions)
+            }
+            Leaf::ThematicBreak(thematic_break) => {
+                thematic_break.display_html(buffer, link_reference_definitions)
             }
             _ => unimplemented!("diplay html not implemented for {:?}", self),
         }

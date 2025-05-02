@@ -30,13 +30,11 @@ mod atx_heading {
 <h5>foo</h5>
 <h6>foo</h6>"
     );
-
     test!(
         exmple_67,
         r"#                  foo                     ",
         r"<h1>foo</h1>"
     );
-
     test!(
         example_68,
         r" ### foo
@@ -46,7 +44,6 @@ mod atx_heading {
 <h2>foo</h2>
 <h1>foo</h1>"
     );
-
     test!(
         example_71,
         r"## foo ##
@@ -54,7 +51,6 @@ mod atx_heading {
         r"<h2>foo</h2>
 <h3>bar</h3>"
     );
-
     test!(
         example_72,
         r"# foo ##################################
@@ -62,11 +58,8 @@ mod atx_heading {
         r"<h1>foo</h1>
 <h5>foo</h5>"
     );
-
     test!(example_73, r"### foo ###     ", r"<h3>foo</h3>");
-
     test!(example_74, r"### foo ### b", r"<h3>foo ### b</h3>");
-
     test!(example_75, r"# foo#", r"<h1>foo#</h1>");
 
     /* test!(
@@ -78,6 +71,16 @@ mod atx_heading {
     <h2>foo ###</h2>
     <h1>foo #</h1>"
         ); */
+
+    test!(
+        example_77,
+        r"****
+## foo
+****",
+        r"<hr />
+<h2>foo</h2>
+<hr />"
+    );
 
     test!(
         exmple_79,
@@ -224,7 +227,7 @@ chunk2
 chunk3
 </code></pre>"
     );
-}
+}*/
 
 mod thematic_break {
     use super::*;
@@ -238,5 +241,22 @@ ___",
 <hr />
 <hr />"
     );
+    test!(
+        example_47,
+        r" ***
+  ***
+   ***",
+        r"<hr />
+<hr />
+<hr />"
+    );
+    test!(
+        example_50,
+        r"_____________________________________",
+        r"<hr />"
+    );
+    test!(example_51, r" - - -", r"<hr />");
+    test!(example_52, r" **  * ** * ** * **", r"<hr />");
+    test!(example_53, r"-     -      -      -", r"<hr />");
+    test!(example_54, r"- - - -    ", r"<hr />");
 }
- */
