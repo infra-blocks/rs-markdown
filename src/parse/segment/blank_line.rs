@@ -6,6 +6,8 @@ use nom::{
     Parser,
 };
 
+use crate::parse::traits::Parse;
+
 /// Represents a blank line segment.
 ///
 /// A blank line contains at least one whitespace character, and only whitespace characters.
@@ -16,10 +18,13 @@ impl<'a> BlankLineSegment<'a> {
     fn new(segment: &'a str) -> Self {
         Self(segment)
     }
+}
 
-    pub fn parser<Error: ParseError<&'a str>>() -> impl Parser<&'a str, Output = Self, Error = Error>
-    {
-        consumed(alt(((space0, line_ending), (space1, eof)))).map(|(segment, _)| Self::new(segment))
+impl<'a> Parse<'a> for BlankLineSegment<'a> {
+    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
+        consumed(alt(((space0, line_ending), (space1, eof))))
+            .map(|(segment, _)| Self::new(segment))
+            .parse(input)
     }
 }
 
@@ -27,7 +32,7 @@ impl<'a> BlankLineSegment<'a> {
 mod test {
     use super::*;
 
-    mod parser {
+    mod parse {
         use super::*;
         use nom::error::Error;
 
@@ -35,9 +40,7 @@ mod test {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(BlankLineSegment::parser::<Error<&str>>()
-                        .parse($segment)
-                        .is_err())
+                    assert!(BlankLineSegment::parse::<Error<&str>>($segment).is_err())
                 }
             };
         }
@@ -47,7 +50,7 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        BlankLineSegment::parser::<Error<&str>>().parse($segment.clone()),
+                        BlankLineSegment::parse::<Error<&str>>($segment.clone()),
                         Ok(("", BlankLineSegment::new($segment)))
                     )
                 }
