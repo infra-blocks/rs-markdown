@@ -193,7 +193,7 @@ aaa",
 aaa
 </code></pre>"
     );
-}
+}*/
 
 mod indented_code {
     use super::*;
@@ -207,7 +207,6 @@ mod indented_code {
   indented code block
 </code></pre>"
     );
-
     test!(
         example_111,
         r"    chunk1
@@ -227,7 +226,62 @@ chunk2
 chunk3
 </code></pre>"
     );
-}*/
+    // Added terminating new line in input.
+    test!(
+        example_112,
+        r"    chunk1
+      
+      chunk2
+",
+        r"<pre><code>chunk1
+  
+  chunk2
+</code></pre>"
+    );
+    /* test!(
+            example_115,
+            r"# Heading
+        foo
+    Heading
+    ------
+        foo
+    ----",
+            r"<h1>Heading</h1>
+    <pre><code>foo
+    </code></pre>
+    <h2>Heading</h2>
+    <pre><code>foo
+    </code></pre>
+    <hr />"
+        ); */
+    // Added terminating new line in input.
+    test!(
+        example_116,
+        r"        foo
+    bar
+",
+        r"<pre><code>    foo
+bar
+</code></pre>"
+    );
+    test!(
+        example_117,
+        r"
+    
+    foo
+    ",
+        r"<pre><code>foo
+</code></pre>"
+    );
+    // Added terminating new line in input.
+    test!(
+        example_118,
+        r"    foo  
+",
+        r"<pre><code>foo  
+</code></pre>"
+    );
+}
 
 mod thematic_break {
     use super::*;

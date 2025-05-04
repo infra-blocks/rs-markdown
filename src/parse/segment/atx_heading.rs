@@ -1,4 +1,7 @@
-use crate::parse::utils::{is_char, line, up_to_n_whitespace};
+use crate::parse::{
+    traits::Parse,
+    utils::{indented_by_less_than_4, is_char, line},
+};
 use nom::{
     bytes::complete::take_while_m_n, character::complete::space1, combinator::consumed,
     error::ParseError, sequence::preceded, IResult, Parser,
@@ -24,12 +27,6 @@ impl<'a> AtxHeadingSegment<'a> {
         }
     }
 
-    pub fn parser<Error: ParseError<&'a str>>() -> impl Parser<&'a str, Output = Self, Error = Error>
-    {
-        consumed(line().and_then(Self::parts()))
-            .map(|(segment, (level, title))| Self::new(segment, title, level))
-    }
-
     /// Parses the parts of the ATX heading segment.
     ///
     /// The parts are made of the opening sequence's length and the title.
@@ -38,7 +35,7 @@ impl<'a> AtxHeadingSegment<'a> {
     fn parts<Error: ParseError<&'a str>>(
     ) -> impl Parser<&'a str, Output = (u8, &'a str), Error = Error> {
         preceded(
-            up_to_n_whitespace(3),
+            indented_by_less_than_4,
             (Self::opening_sequence(), Self::parse_title),
         )
     }
@@ -105,22 +102,27 @@ impl<'a> AtxHeadingSegment<'a> {
     }
 }
 
+impl<'a> Parse<'a> for AtxHeadingSegment<'a> {
+    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+        consumed(line.and_then(Self::parts()))
+            .map(|(segment, (level, title))| Self::new(segment, title, level))
+            .parse(input)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
-    mod parser {
+    mod parse {
         use super::*;
-
         use nom::error::Error;
 
         macro_rules! failure_case {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(AtxHeadingSegment::parser::<Error<&str>>()
-                        .parse($segment.clone())
-                        .is_err())
+                    assert!(AtxHeadingSegment::parse::<Error<&str>>($segment.clone()).is_err())
                 }
             };
         }
@@ -130,7 +132,7 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        AtxHeadingSegment::parser::<Error<&str>>().parse($segment.clone()),
+                        AtxHeadingSegment::parse::<Error<&str>>($segment.clone()),
                         Ok(("", $expected))
                     )
                 }

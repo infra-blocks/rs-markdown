@@ -1,3 +1,4 @@
 pub mod ast;
 pub mod segment;
-pub(crate) mod utils;
+pub mod traits;
+pub mod utils;

@@ -1,5 +1,6 @@
 mod atx_heading;
 mod blank_line;
+mod indented_code;
 mod thematic_break;
 
 use crate::{
@@ -19,6 +20,9 @@ impl DisplayHtml for Leaf<'_> {
             }
             Leaf::BlankLine(blank_line) => {
                 blank_line.display_html(buffer, link_reference_definitions)
+            }
+            Leaf::IndentedCode(indented_code) => {
+                indented_code.display_html(buffer, link_reference_definitions)
             }
             Leaf::ThematicBreak(thematic_break) => {
                 thematic_break.display_html(buffer, link_reference_definitions)

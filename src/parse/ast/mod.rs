@@ -4,8 +4,11 @@ use block::{
     leaf::{link_reference_definition::LinkReferenceDefinition, Leaf},
     Block,
 };
-use nom::{error::ParseError, multi::many0, Parser};
+use nom::{multi::many0, IResult, Parser};
 
+use super::traits::Parse;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tree<'a> {
     pub blocks: Vec<Block<'a>>,
     pub link_reference_definitions: Vec<LinkReferenceDefinition<'a>>,
@@ -21,10 +24,13 @@ impl<'a> Tree<'a> {
             link_reference_definitions,
         }
     }
+}
 
-    pub fn parser<Error: ParseError<&'a str>>() -> impl Parser<&'a str, Output = Self, Error = Error>
-    {
-        many0(Block::parser()).map(Self::from)
+impl<'a> Parse<'a> for Tree<'a> {
+    fn parse<Error: nom::error::ParseError<&'a str>>(
+        input: &'a str,
+    ) -> IResult<&'a str, Self, Error> {
+        many0(Block::parse).map(Self::from).parse(input)
     }
 }
 

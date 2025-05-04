@@ -6,7 +6,10 @@ use nom::{
     Parser,
 };
 
-use crate::parse::utils::{is_one_of, line, up_to_n_whitespace};
+use crate::parse::{
+    traits::Parse,
+    utils::{indented_by_less_than_4, is_one_of, line},
+};
 
 /// A thematic break segment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -17,15 +20,10 @@ impl<'a> ThematicBreakSegment<'a> {
         Self(segment)
     }
 
-    pub fn parser<Error: nom::error::ParseError<&'a str>>(
-    ) -> impl Parser<&'a str, Output = Self, Error = Error> {
-        consumed(line().and_then(Self::thematic_break())).map(|(segment, _)| Self::new(segment))
-    }
-
     fn thematic_break<Error: nom::error::ParseError<&'a str>>(
     ) -> impl Parser<&'a str, Output = &'a str, Error = Error> {
         recognize((
-            up_to_n_whitespace(3),
+            indented_by_less_than_4,
             alt((Self::asterisks(), Self::hyphens(), Self::underscores())),
             eof,
         ))
@@ -68,11 +66,21 @@ impl<'a> ThematicBreakSegment<'a> {
     }
 }
 
+impl<'a> Parse<'a> for ThematicBreakSegment<'a> {
+    fn parse<Error: nom::error::ParseError<&'a str>>(
+        input: &'a str,
+    ) -> nom::IResult<&'a str, Self, Error> {
+        consumed(line.and_then(Self::thematic_break()))
+            .map(|(segment, _)| Self::new(segment))
+            .parse(input)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
-    mod parser {
+    mod parse {
         use super::*;
         use nom::error::Error;
 
@@ -80,9 +88,7 @@ mod test {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(ThematicBreakSegment::parser::<Error<&str>>()
-                        .parse($segment.clone())
-                        .is_err())
+                    assert!(ThematicBreakSegment::parse::<Error<&str>>($segment.clone()).is_err())
                 }
             };
         }
@@ -92,7 +98,7 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        ThematicBreakSegment::parser::<Error<&str>>().parse($segment.clone()),
+                        ThematicBreakSegment::parse::<Error<&str>>($segment.clone()),
                         Ok(("", ThematicBreakSegment::new($segment)))
                     )
                 }

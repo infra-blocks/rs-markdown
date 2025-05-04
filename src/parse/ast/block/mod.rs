@@ -4,13 +4,17 @@ pub mod leaf;
 use leaf::Leaf;
 use nom::Parser;
 
+use crate::parse::traits::Parse;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Block<'a> {
     Leaf(Leaf<'a>),
 }
 
-impl<'a> Block<'a> {
-    pub fn parser<Error: nom::error::ParseError<&'a str>>(
-    ) -> impl nom::Parser<&'a str, Output = Self, Error = Error> {
-        Leaf::parser().map(Block::Leaf)
+impl<'a> Parse<'a> for Block<'a> {
+    fn parse<Error: nom::error::ParseError<&'a str>>(
+        input: &'a str,
+    ) -> nom::IResult<&'a str, Self, Error> {
+        Leaf::parse.map(Block::Leaf).parse(input)
     }
 }

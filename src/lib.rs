@@ -1,15 +1,11 @@
 pub(crate) mod parse;
 pub mod render;
 
-use nom::{error::Error, Parser};
+use nom::error::Error;
 pub use parse::ast::Tree;
+use parse::traits::ParseWhole;
 pub use render::to_html::ToHtml;
 
 pub fn parse(input: &str) -> Tree {
-    let mut parser = Tree::parser::<Error<&str>>();
-    let (remaining, tree) = parser
-        .parse(input)
-        .expect("unexpected error parsing markdown");
-    assert!(remaining.is_empty(), "Remaining input: {}", remaining);
-    tree
+    Tree::parse_whole::<Error<&str>>(input).expect("unexpected error parsing markdown")
 }
