@@ -1,3 +1,7 @@
+use crate::parse::{
+    traits::{Parse, Segment},
+    utils::{indented_by_less_than_4, is_one_of, line},
+};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while},
@@ -6,14 +10,9 @@ use nom::{
     Parser,
 };
 
-use crate::parse::{
-    traits::Parse,
-    utils::{indented_by_less_than_4, is_one_of, line},
-};
-
 /// A thematic break segment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ThematicBreakSegment<'a>(pub &'a str);
+pub struct ThematicBreakSegment<'a>(&'a str);
 
 impl<'a> ThematicBreakSegment<'a> {
     fn new(segment: &'a str) -> Self {
@@ -73,6 +72,12 @@ impl<'a> Parse<'a> for ThematicBreakSegment<'a> {
         consumed(line.and_then(Self::thematic_break()))
             .map(|(segment, _)| Self::new(segment))
             .parse(input)
+    }
+}
+
+impl<'a> Segment<'a> for ThematicBreakSegment<'a> {
+    fn segment(&self) -> &'a str {
+        self.0
     }
 }
 

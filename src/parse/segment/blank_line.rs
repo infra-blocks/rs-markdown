@@ -1,3 +1,4 @@
+use crate::parse::traits::{Parse, Segment};
 use nom::{
     branch::alt,
     character::complete::{line_ending, space0, space1},
@@ -6,13 +7,11 @@ use nom::{
     Parser,
 };
 
-use crate::parse::traits::Parse;
-
 /// Represents a blank line segment.
 ///
 /// A blank line contains at least one whitespace character, and only whitespace characters.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct BlankLineSegment<'a>(pub &'a str);
+pub struct BlankLineSegment<'a>(&'a str);
 
 impl<'a> BlankLineSegment<'a> {
     fn new(segment: &'a str) -> Self {
@@ -25,6 +24,12 @@ impl<'a> Parse<'a> for BlankLineSegment<'a> {
         consumed(alt(((space0, line_ending), (space1, eof))))
             .map(|(segment, _)| Self::new(segment))
             .parse(input)
+    }
+}
+
+impl<'a> Segment<'a> for BlankLineSegment<'a> {
+    fn segment(&self) -> &'a str {
+        self.0
     }
 }
 

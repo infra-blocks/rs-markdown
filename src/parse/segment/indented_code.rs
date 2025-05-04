@@ -1,5 +1,6 @@
+use super::blank_line::BlankLineSegment;
 use crate::parse::{
-    traits::Parse,
+    traits::{Parse, Segment},
     utils::{indented_by_at_least_4, line, non_whitespace},
 };
 use nom::{
@@ -8,8 +9,6 @@ use nom::{
     error::ParseError,
     IResult, Parser,
 };
-
-use super::blank_line::BlankLineSegment;
 
 /// An indented code segment.
 ///
@@ -52,14 +51,17 @@ pub enum IndentedCodeOrBlankLineSegment<'a> {
 }
 
 impl<'a> IndentedCodeOrBlankLineSegment<'a> {
+    #[allow(dead_code)]
     pub fn is_blank_line(&self) -> bool {
         matches!(self, Self::BlankLine(_))
     }
 
+    #[allow(dead_code)]
     pub fn is_indented_code(&self) -> bool {
         matches!(self, Self::IndentedCode(_))
     }
 
+    #[allow(dead_code)]
     pub fn unwrap_blank_line(self) -> BlankLineSegment<'a> {
         if let Self::BlankLine(segment) = self {
             segment
@@ -79,7 +81,7 @@ impl<'a> IndentedCodeOrBlankLineSegment<'a> {
     pub fn text(&self) -> &'a str {
         match self {
             Self::IndentedCode(segment) => segment.0,
-            Self::BlankLine(segment) => segment.0,
+            Self::BlankLine(blank_line) => blank_line.segment(),
         }
     }
 }

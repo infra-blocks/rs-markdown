@@ -11,13 +11,13 @@ use crate::parse::{
         blank_line::BlankLineSegment,
         indented_code::{IndentedCodeOrBlankLineSegment, IndentedCodeSegment},
     },
-    traits::Parse,
+    traits::{Parse, Segments},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndentedCode<'a> {
-    pub opening_segment: IndentedCodeSegment<'a>,
-    pub continuation_segments: Option<ContinuationSegments<'a>>,
+    opening_segment: IndentedCodeSegment<'a>,
+    continuation_segments: Option<ContinuationSegments<'a>>,
 }
 
 impl<'a> IndentedCode<'a> {
@@ -41,11 +41,6 @@ impl<'a> IndentedCode<'a> {
     ) -> Self {
         Self::new(opening_segment, Some(continuation_segments))
     }
-
-    // TODO: this should be provided for every block.
-    pub fn text(&'a self) -> impl Iterator<Item = &'a str> {
-        IndentedCodeTextIterator::from(self)
-    }
 }
 
 impl<'a> Parse<'a> for IndentedCode<'a> {
@@ -66,7 +61,15 @@ impl<'a> Parse<'a> for IndentedCode<'a> {
     }
 }
 
-struct IndentedCodeTextIterator<'a> {
+impl<'a> Segments<'a> for IndentedCode<'a> {
+    type SegmentsIter = IndentedCodeTextIterator<'a>;
+
+    fn segments(&'a self) -> Self::SegmentsIter {
+        IndentedCodeTextIterator::from(self)
+    }
+}
+
+pub struct IndentedCodeTextIterator<'a> {
     opening_segment: Option<&'a str>,
     continuation_segments: Box<dyn Iterator<Item = &'a str> + 'a>,
     closing_segment: Option<&'a str>,
@@ -166,9 +169,8 @@ mod test {
 
     // Tests that it properly strips off trailing blank lines when present.
     mod parse {
-        use crate::parse::traits::ParseWhole;
-
         use super::*;
+        use crate::parse::traits::ParseWhole;
         use nom::error::Error;
 
         macro_rules! failure_case {
@@ -271,5 +273,39 @@ But not this one.",
             ),
             " \nBut not this one."
         );
+    }
+
+    mod text {
+        use super::*;
+        use crate::parse::traits::ParseWhole;
+        use nom::error::Error;
+        use std::vec;
+
+        #[test]
+        fn should_work_with_single_segment() {
+            let indented_code =
+                IndentedCode::parse_whole::<Error<&str>>("    This is indented code\n").unwrap();
+            let segments = indented_code.segments().collect::<Vec<_>>();
+            assert_eq!(segments, vec!["    This is indented code\n"]);
+        }
+
+        #[test]
+        fn should_work_with_multiple_segments() {
+            let indented_code = IndentedCode::parse_whole::<Error<&str>>(
+                r"    This is indented code
+
+    This is the closing segment.",
+            )
+            .unwrap();
+            let segments = indented_code.segments().collect::<Vec<_>>();
+            assert_eq!(
+                segments,
+                vec![
+                    "    This is indented code\n",
+                    "\n",
+                    "    This is the closing segment."
+                ]
+            );
+        }
     }
 }

@@ -1,8 +1,10 @@
-use crate::parse::ast::block::leaf::{
-    link_reference_definition::LinkReferenceDefinition, thematic_break::ThematicBreak,
-};
-
 use super::DisplayHtml;
+use crate::parse::{
+    ast::block::leaf::{
+        link_reference_definition::LinkReferenceDefinition, thematic_break::ThematicBreak,
+    },
+    traits::Segment,
+};
 
 impl DisplayHtml for ThematicBreak<'_> {
     fn display_html(&self, buffer: &mut String, _: &[LinkReferenceDefinition]) {
