@@ -1,6 +1,8 @@
 pub mod container;
 pub mod leaf;
 
+use std::iter::FusedIterator;
+
 use crate::parse::traits::{Parse, Segments};
 use leaf::Leaf;
 use nom::Parser;
@@ -19,24 +21,24 @@ impl<'a> Parse<'a> for Block<'a> {
 }
 
 impl<'a> Segments<'a> for Block<'a> {
-    type SegmentsIter = BlockIterator<'a>;
+    type SegmentsIter = BlockSegmentsIterator<'a>;
 
     fn segments(&'a self) -> Self::SegmentsIter {
-        BlockIterator::from(self)
+        BlockSegmentsIterator::from(self)
     }
 }
 
-pub struct BlockIterator<'a> {
+pub struct BlockSegmentsIterator<'a> {
     iter: Box<dyn Iterator<Item = &'a str> + 'a>,
 }
 
-impl<'a> BlockIterator<'a> {
+impl<'a> BlockSegmentsIterator<'a> {
     fn new(iter: Box<dyn Iterator<Item = &'a str> + 'a>) -> Self {
         Self { iter }
     }
 }
 
-impl<'a> From<&'a Block<'a>> for BlockIterator<'a> {
+impl<'a> From<&'a Block<'a>> for BlockSegmentsIterator<'a> {
     fn from(block: &'a Block) -> Self {
         match block {
             Block::Leaf(leaf) => Self::new(Box::new(leaf.segments())),
@@ -44,7 +46,9 @@ impl<'a> From<&'a Block<'a>> for BlockIterator<'a> {
     }
 }
 
-impl<'a> Iterator for BlockIterator<'a> {
+impl FusedIterator for BlockSegmentsIterator<'_> {}
+
+impl<'a> Iterator for BlockSegmentsIterator<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {

@@ -1,19 +1,33 @@
 use std::{fmt::Debug, iter};
 
-use nom::{error::ParseError, IResult};
+use nom::{
+    error::{Error, ParseError},
+    IResult,
+};
 
+/// The trait formalizing the parsing interface of structs.
+///
+/// It is a thin wrapper around [nom]'s parsing semantics.
 pub trait Parse<'a> {
     fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized;
 }
 
+/// The error type returned by [ParseWhole::parse_whole].
+///
+/// It can either be a [nom::Err] in the case of a parsing error, or a [ParseWholeError::RemainingInput] variant
+/// in the case of partial input consumption.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseWholeError<'a, E: ParseError<&'a str>> {
     RemainingInput(&'a str),
     NomError(nom::Err<E>),
 }
 
+/// This trait extends the [Parse] trait to provide a way to guarantee that the entire input has been consumed
+/// on success, otherwise returning an error.
+///
+/// A blanket implementation is provided for all types that implement [Parse].
 pub trait ParseWhole<'a> {
     fn parse_whole<Error: ParseError<&'a str>>(
         input: &'a str,
@@ -42,6 +56,27 @@ where
     }
 }
 
+/// Yet another utility trait on top of [Parse] that provides a way to parse a struct
+/// using [ParseWhole] and unwrap the result.
+///
+/// This is expected to be mostly useful in the context of tests. The error used by
+/// the blanket implementation is [nom::error::Error].
+pub trait StrictParse<'a> {
+    #[allow(dead_code)]
+    fn strict_parse(input: &'a str) -> Self
+    where
+        Self: Sized;
+}
+
+impl<'a, T> StrictParse<'a> for T
+where
+    T: ParseWhole<'a>,
+{
+    fn strict_parse(input: &'a str) -> Self {
+        Self::parse_whole::<Error<&str>>(input).unwrap()
+    }
+}
+
 /// This trait is for struct can be represented as a single segment.
 ///
 /// Those can be blocks that are single segment by definition, such as [crate::parse::ast::block::leaf::atx_heading::AtxHeading],
@@ -51,6 +86,10 @@ pub trait Segment<'a> {
     fn segment(&self) -> &'a str;
 }
 
+/// This trait is for structs that can be represented as multiple segments.
+///
+/// This is useful for blocks that are made of multiple segments, such as [crate::parse::ast::block::leaf::fenced_code::FencedCode].
+/// A blanket implementation is provided for structs that implement [Segment].
 pub trait Segments<'a> {
     type SegmentsIter: Iterator<Item = &'a str>;
 
@@ -68,22 +107,3 @@ where
         iter::once(self.segment())
     }
 }
-
-// TODO: remove.
-// TODO: turn this into static typing with associated type. I.E. type Iter = Iterator<Item = &'a str>;
-// All AST block nodes implement the [Text] trait, which allows to iterate over the text
-// that composes the block.
-/* pub trait Text<'a> {
-    /// Returns an iterator over the text segments of the block.
-    fn text(&'a self) -> impl Iterator<Item = &'a str>;
-}
-
-impl<'a, T> Text<'a> for T
-where
-    T: Segment<'a>,
-{
-    fn text(&'a self) -> impl Iterator<Item = &'a str> {
-        iter::once(self.segment())
-    }
-}
- */

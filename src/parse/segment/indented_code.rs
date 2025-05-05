@@ -15,7 +15,7 @@ use nom::{
 /// An indented code segment is one that starts with 4 spaces or a tab and
 /// isn't a blank line segment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct IndentedCodeSegment<'a>(pub &'a str);
+pub struct IndentedCodeSegment<'a>(&'a str);
 
 impl<'a> IndentedCodeSegment<'a> {
     fn new(segment: &'a str) -> Self {
@@ -34,6 +34,12 @@ impl<'a> Parse<'a> for IndentedCodeSegment<'a> {
         recognize(line.and_then(Self::indented_code))
             .map(Self::new)
             .parse(input)
+    }
+}
+
+impl<'a> Segment<'a> for IndentedCodeSegment<'a> {
+    fn segment(&self) -> &'a str {
+        self.0
     }
 }
 
@@ -77,13 +83,6 @@ impl<'a> IndentedCodeOrBlankLineSegment<'a> {
             panic!("cannot unwrap indented code from: {:?}", self)
         }
     }
-
-    pub fn text(&self) -> &'a str {
-        match self {
-            Self::IndentedCode(segment) => segment.0,
-            Self::BlankLine(blank_line) => blank_line.segment(),
-        }
-    }
 }
 
 impl<'a> From<IndentedCodeSegment<'a>> for IndentedCodeOrBlankLineSegment<'a> {
@@ -105,6 +104,15 @@ impl<'a> Parse<'a> for IndentedCodeOrBlankLineSegment<'a> {
             BlankLineSegment::parse.map(Self::from),
         ))
         .parse(input)
+    }
+}
+
+impl<'a> Segment<'a> for IndentedCodeOrBlankLineSegment<'a> {
+    fn segment(&self) -> &'a str {
+        match self {
+            Self::IndentedCode(segment) => segment.segment(),
+            Self::BlankLine(blank_line) => blank_line.segment(),
+        }
     }
 }
 

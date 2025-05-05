@@ -1,4 +1,4 @@
-use std::iter::{self};
+use std::iter::{self, FusedIterator};
 
 use nom::{
     error::ParseError,
@@ -11,7 +11,7 @@ use crate::parse::{
         blank_line::BlankLineSegment,
         indented_code::{IndentedCodeOrBlankLineSegment, IndentedCodeSegment},
     },
-    traits::{Parse, Segments},
+    traits::{Parse, Segment, Segments},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -62,20 +62,20 @@ impl<'a> Parse<'a> for IndentedCode<'a> {
 }
 
 impl<'a> Segments<'a> for IndentedCode<'a> {
-    type SegmentsIter = IndentedCodeTextIterator<'a>;
+    type SegmentsIter = IndentedCodeSegmentsIterator<'a>;
 
     fn segments(&'a self) -> Self::SegmentsIter {
-        IndentedCodeTextIterator::from(self)
+        IndentedCodeSegmentsIterator::from(self)
     }
 }
 
-pub struct IndentedCodeTextIterator<'a> {
+pub struct IndentedCodeSegmentsIterator<'a> {
     opening_segment: Option<&'a str>,
     continuation_segments: Box<dyn Iterator<Item = &'a str> + 'a>,
     closing_segment: Option<&'a str>,
 }
 
-impl<'a> IndentedCodeTextIterator<'a> {
+impl<'a> IndentedCodeSegmentsIterator<'a> {
     fn new(
         opening_segment: &'a str,
         continuation_segments: Box<dyn Iterator<Item = &'a str> + 'a>,
@@ -89,17 +89,17 @@ impl<'a> IndentedCodeTextIterator<'a> {
     }
 }
 
-impl<'a> From<&'a IndentedCode<'a>> for IndentedCodeTextIterator<'a> {
+impl<'a> From<&'a IndentedCode<'a>> for IndentedCodeSegmentsIterator<'a> {
     fn from(indented_code: &'a IndentedCode<'a>) -> Self {
-        let opening_segment = indented_code.opening_segment.0;
+        let opening_segment = indented_code.opening_segment.segment();
         match &indented_code.continuation_segments {
             None => Self::new(opening_segment, Box::new(iter::empty()), None),
             Some(continuation_segments) => {
-                let closing_segment = continuation_segments.closing_segment.0;
+                let closing_segment = continuation_segments.closing_segment.segment();
                 let continuation_segments = continuation_segments
                     .segments
                     .iter()
-                    .map(|segment| segment.text());
+                    .map(|segment| segment.segment());
                 Self::new(
                     opening_segment,
                     Box::new(continuation_segments),
@@ -110,15 +110,17 @@ impl<'a> From<&'a IndentedCode<'a>> for IndentedCodeTextIterator<'a> {
     }
 }
 
-impl<'a> Iterator for IndentedCodeTextIterator<'a> {
+impl FusedIterator for IndentedCodeSegmentsIterator<'_> {}
+
+impl<'a> Iterator for IndentedCodeSegmentsIterator<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(text) = self.opening_segment.take() {
-            return Some(text);
+        if let Some(segment) = self.opening_segment.take() {
+            return Some(segment);
         }
-        if let Some(text) = self.continuation_segments.next() {
-            return Some(text);
+        if let Some(segment) = self.continuation_segments.next() {
+            return Some(segment);
         }
         self.closing_segment.take()
     }
@@ -275,7 +277,7 @@ But not this one.",
         );
     }
 
-    mod text {
+    mod segments {
         use super::*;
         use crate::parse::traits::ParseWhole;
         use nom::error::Error;
