@@ -1,12 +1,11 @@
 pub mod block;
 
+use super::traits::{Parse, Segments};
 use block::{
     leaf::{link_reference_definition::LinkReferenceDefinition, Leaf},
     Block,
 };
 use nom::{multi::many0, IResult, Parser};
-
-use super::traits::Parse;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tree<'a> {
@@ -26,14 +25,6 @@ impl<'a> Tree<'a> {
     }
 }
 
-impl<'a> Parse<'a> for Tree<'a> {
-    fn parse<Error: nom::error::ParseError<&'a str>>(
-        input: &'a str,
-    ) -> IResult<&'a str, Self, Error> {
-        many0(Block::parse).map(Self::from).parse(input)
-    }
-}
-
 impl<'a> From<Vec<Block<'a>>> for Tree<'a> {
     fn from(blocks: Vec<Block<'a>>) -> Self {
         let mut link_reference_definitions = vec![];
@@ -45,5 +36,46 @@ impl<'a> From<Vec<Block<'a>>> for Tree<'a> {
         }
 
         Self::new(blocks, link_reference_definitions)
+    }
+}
+
+impl<'a> Parse<'a> for Tree<'a> {
+    fn parse<Error: nom::error::ParseError<&'a str>>(
+        input: &'a str,
+    ) -> IResult<&'a str, Self, Error> {
+        many0(Block::parse).map(Self::from).parse(input)
+    }
+}
+
+impl<'a> Segments<'a> for Tree<'a> {
+    type SegmentsIter = TreeIterator<'a>;
+
+    fn segments(&'a self) -> Self::SegmentsIter {
+        TreeIterator::from(self)
+    }
+}
+
+pub struct TreeIterator<'a> {
+    iter: Box<dyn Iterator<Item = &'a str> + 'a>,
+}
+
+impl<'a> TreeIterator<'a> {
+    fn new(iter: Box<dyn Iterator<Item = &'a str> + 'a>) -> Self {
+        Self { iter }
+    }
+}
+
+impl<'a> From<&'a Tree<'a>> for TreeIterator<'a> {
+    fn from(tree: &'a Tree) -> Self {
+        let iter = tree.blocks.iter().flat_map(|block| block.segments());
+        Self::new(Box::new(iter))
+    }
+}
+
+impl<'a> Iterator for TreeIterator<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
     }
 }

@@ -11,7 +11,7 @@ use link_reference_definition::LinkReferenceDefinition;
 use nom::{branch::alt, Parser};
 use thematic_break::ThematicBreak;
 
-use crate::parse::traits::Parse;
+use crate::parse::traits::{Parse, Segments};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Leaf<'a> {
@@ -33,5 +33,46 @@ impl<'a> Parse<'a> for Leaf<'a> {
             ThematicBreak::parse.map(Leaf::ThematicBreak),
         ))
         .parse(input)
+    }
+}
+
+impl<'a> Segments<'a> for Leaf<'a> {
+    type SegmentsIter = LeafIterator<'a>;
+
+    fn segments(&'a self) -> Self::SegmentsIter {
+        LeafIterator::from(self)
+    }
+}
+
+// TODO: turn into statically typed enum.
+pub struct LeafIterator<'a> {
+    iter: Box<dyn Iterator<Item = &'a str> + 'a>,
+}
+
+impl<'a> LeafIterator<'a> {
+    fn new(iter: Box<dyn Iterator<Item = &'a str> + 'a>) -> Self {
+        Self { iter }
+    }
+}
+
+impl<'a> From<&'a Leaf<'a>> for LeafIterator<'a> {
+    fn from(leaf: &'a Leaf) -> Self {
+        match leaf {
+            Leaf::AtxHeading(heading) => Self::new(Box::new(heading.segments())),
+            Leaf::BlankLine(blank_line) => Self::new(Box::new(blank_line.segments())),
+            Leaf::IndentedCode(indented_code) => Self::new(Box::new(indented_code.segments())),
+            Leaf::LinkReferenceDefinition(_link_reference_definition) => {
+                unimplemented!("LinkReferenceDefinition text() not implemented")
+            }
+            Leaf::ThematicBreak(thematic_break) => Self::new(Box::new(thematic_break.segments())),
+        }
+    }
+}
+
+impl<'a> Iterator for LeafIterator<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
     }
 }

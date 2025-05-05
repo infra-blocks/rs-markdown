@@ -1,6 +1,5 @@
-use crate::parse::ast::block::leaf::indented_code::IndentedCode;
-
 use super::DisplayHtml;
+use crate::parse::{ast::block::leaf::indented_code::IndentedCode, traits::Segments};
 
 trait PushUnindentedStr {
     fn push_unindented_str(&mut self, text: &str);
@@ -35,8 +34,8 @@ impl DisplayHtml for IndentedCode<'_> {
     fn display_html(&self, buffer: &mut String, _: &[super::LinkReferenceDefinition]) {
         buffer.push_str("<pre><code>");
         // There should be at least one segment in the block, otherwise, it was improperly constructed.
-        for text in self.text() {
-            buffer.push_unindented_str(text);
+        for segment in self.segments() {
+            buffer.push_unindented_str(segment);
         }
         buffer.push_str("</code></pre>");
     }

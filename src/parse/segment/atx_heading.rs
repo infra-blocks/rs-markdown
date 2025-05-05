@@ -1,5 +1,5 @@
 use crate::parse::{
-    traits::Parse,
+    traits::{Parse, Segment},
     utils::{indented_by_less_than_4, is_char, line},
 };
 use nom::{
@@ -11,11 +11,11 @@ use nom::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AtxHeadingSegment<'a> {
     /// The source segment from which this struct was constructed.
-    pub segment: &'a str,
+    segment: &'a str,
     /// The title of the heading, possibly empty.
-    pub title: &'a str,
+    title: &'a str,
     /// The level of the heading, from 1 to 6.
-    pub level: u8,
+    level: u8,
 }
 
 impl<'a> AtxHeadingSegment<'a> {
@@ -25,6 +25,14 @@ impl<'a> AtxHeadingSegment<'a> {
             title,
             level,
         }
+    }
+
+    pub fn title(&self) -> &'a str {
+        self.title
+    }
+
+    pub fn level(&self) -> u8 {
+        self.level
     }
 
     /// Parses the parts of the ATX heading segment.
@@ -105,8 +113,14 @@ impl<'a> AtxHeadingSegment<'a> {
 impl<'a> Parse<'a> for AtxHeadingSegment<'a> {
     fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(line.and_then(Self::parts()))
-            .map(|(segment, (level, title))| Self::new(segment, title, level))
+            .map(|(text, (level, title))| Self::new(text, title, level))
             .parse(input)
+    }
+}
+
+impl<'a> Segment<'a> for AtxHeadingSegment<'a> {
+    fn segment(&self) -> &'a str {
+        self.segment
     }
 }
 
