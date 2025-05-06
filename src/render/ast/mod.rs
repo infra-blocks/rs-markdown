@@ -1,10 +1,9 @@
 mod block;
 
-use crate::{
-    parse::ast::block::leaf::link_reference_definition::LinkReferenceDefinition, ToHtml, Tree,
-};
-
 use super::display_html::DisplayHtml;
+use crate::{
+    ToHtml, Tree, parse::ast::block::leaf::link_reference_definition::LinkReferenceDefinition,
+};
 
 impl DisplayHtml for Tree<'_> {
     fn display_html(

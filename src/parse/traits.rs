@@ -1,9 +1,8 @@
-use std::{fmt::Debug, iter};
-
 use nom::{
-    error::{Error, ParseError},
     IResult,
+    error::{Error, ParseError},
 };
+use std::{fmt::Debug, iter};
 
 /// The trait formalizing the parsing interface of structs.
 ///

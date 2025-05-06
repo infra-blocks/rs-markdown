@@ -1,11 +1,11 @@
 mod backticks;
 mod tildes;
 
-use std::iter::FusedIterator;
-
 pub use backticks::*;
-use nom::{branch::alt, error::ParseError, Parser};
 pub use tildes::*;
+
+use nom::{Parser, branch::alt, error::ParseError};
+use std::iter::FusedIterator;
 
 use crate::parse::traits::{Parse, Segments};
 

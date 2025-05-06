@@ -3,8 +3,8 @@ use crate::parse::{
     utils::{indented_by_less_than_4, is_char, line},
 };
 use nom::{
-    bytes::complete::take_while_m_n, character::complete::space1, combinator::consumed,
-    error::ParseError, sequence::preceded, IResult, Parser,
+    IResult, Parser, bytes::complete::take_while_m_n, character::complete::space1,
+    combinator::consumed, error::ParseError, sequence::preceded,
 };
 
 /// Represents an ATX heading segment.
@@ -40,8 +40,8 @@ impl<'a> AtxHeadingSegment<'a> {
     /// The parts are made of the opening sequence's length and the title.
     /// The length will be between 1 and 6, inclusively and the title may
     /// or may not be empty.
-    fn parts<Error: ParseError<&'a str>>(
-    ) -> impl Parser<&'a str, Output = (u8, &'a str), Error = Error> {
+    fn parts<Error: ParseError<&'a str>>()
+    -> impl Parser<&'a str, Output = (u8, &'a str), Error = Error> {
         preceded(
             indented_by_less_than_4,
             (Self::opening_sequence(), Self::parse_title),
@@ -52,8 +52,8 @@ impl<'a> AtxHeadingSegment<'a> {
     /// will be between 1 and 6.
     ///
     /// Note that if there are more than 6 hashes, this function does not fail.
-    fn opening_sequence<Error: ParseError<&'a str>>(
-    ) -> impl Parser<&'a str, Output = u8, Error = Error> {
+    fn opening_sequence<Error: ParseError<&'a str>>()
+    -> impl Parser<&'a str, Output = u8, Error = Error> {
         take_while_m_n(1, 6, is_char('#')).map(|hashes: &str| {
             u8::try_from(hashes.len()).expect("unexpected hashes length greater than u8")
         })

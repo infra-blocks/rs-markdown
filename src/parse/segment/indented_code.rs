@@ -4,10 +4,10 @@ use crate::parse::{
     utils::{indented_by_at_least_4, line, non_whitespace},
 };
 use nom::{
+    IResult, Parser,
     branch::alt,
     combinator::{recognize, rest},
     error::ParseError,
-    IResult, Parser,
 };
 
 /// An indented code segment.

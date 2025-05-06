@@ -1,8 +1,8 @@
 use nom::{
+    IResult, Parser,
     character::complete::space0,
     combinator::{consumed, eof},
     error::ParseError,
-    IResult, Parser,
 };
 
 use crate::parse::{
@@ -258,7 +258,7 @@ mod test {
 mod utils {
     use crate::parse::utils::is_char;
     use nom::{
-        bytes::complete::take_while_m_n, combinator::rest, error::ParseError, IResult, Parser,
+        IResult, Parser, bytes::complete::take_while_m_n, combinator::rest, error::ParseError,
     };
 
     pub fn tildes_fence<'a, Error: ParseError<&'a str>>(

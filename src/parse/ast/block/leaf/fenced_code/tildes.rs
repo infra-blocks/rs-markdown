@@ -3,7 +3,7 @@ use crate::parse::{
     traits::{Parse, Segment, Segments},
     utils::line,
 };
-use nom::{combinator::recognize, error::ParseError, IResult, Parser};
+use nom::{IResult, Parser, combinator::recognize, error::ParseError};
 use std::{iter::FusedIterator, slice};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

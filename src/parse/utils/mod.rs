@@ -1,11 +1,11 @@
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::{is_not, take_until},
     character::complete::{line_ending, space0, space1},
     combinator::{rest, verify},
     error::ParseError,
     sequence::terminated,
-    IResult, Parser,
 };
 
 /// Returns a predicate that returns whether the character received is the

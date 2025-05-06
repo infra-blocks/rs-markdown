@@ -1,10 +1,10 @@
 use crate::parse::traits::{Parse, Segment};
 use nom::{
+    Parser,
     branch::alt,
     character::complete::{line_ending, space0, space1},
     combinator::{consumed, eof},
     error::ParseError,
-    Parser,
 };
 
 /// Represents a blank line segment.

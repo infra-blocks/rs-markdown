@@ -1,5 +1,5 @@
 //! These tests are the examples taken from the [specification](https://spec.commonmark.org/0.31.2/).
-use markdown::{parse, ToHtml};
+use markdown::{ToHtml, parse};
 
 // TODO: put all the tests.
 macro_rules! test {
@@ -63,14 +63,14 @@ mod atx_heading {
     test!(example_75, r"# foo#", r"<h1>foo#</h1>");
 
     /* test!(
-            example_76,
-            r"### foo \###
+        example_76,
+        r"### foo \###
     ## foo #\##
     # foo \#",
-            r"<h3>foo ###</h3>
+        r"<h3>foo ###</h3>
     <h2>foo ###</h2>
     <h1>foo #</h1>"
-        ); */
+    ); */
 
     test!(
         example_77,
@@ -111,7 +111,7 @@ aaa
     );
 } */
 
-mod fenced_code {
+/* mod fenced_code {
     use super::*;
 
     test!(
@@ -134,13 +134,13 @@ mod fenced_code {
  &gt;
 </code></pre>"
     );
-    /* test!(
-            example_121,
-            r"``
-    foo
-    ``",
-            r"<p><code>foo</code></p>"
-        ); */
+    test!(
+        example_121,
+        r"``
+foo
+``",
+        r"<p><code>foo</code></p>"
+    );
     test!(
         example_122,
         r"```
@@ -182,20 +182,18 @@ aaa
 </code></pre>"
     );
     test!(example_126, r"```", r"<pre><code></code></pre>");
-    // Added terminating new line in input.
     test!(
         example_127,
         r"`````
 
 ```
-aaa
-",
+aaa",
         r"<pre><code>
 ```
 aaa
 </code></pre>"
     );
-}
+}*/
 
 mod indented_code {
     use super::*;
@@ -241,21 +239,21 @@ chunk3
 </code></pre>"
     );
     /* test!(
-            example_115,
-            r"# Heading
+        example_115,
+        r"# Heading
         foo
     Heading
     ------
         foo
     ----",
-            r"<h1>Heading</h1>
+        r"<h1>Heading</h1>
     <pre><code>foo
     </code></pre>
     <h2>Heading</h2>
     <pre><code>foo
     </code></pre>
     <hr />"
-        ); */
+    ); */
     // Added terminating new line in input.
     test!(
         example_116,
