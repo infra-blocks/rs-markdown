@@ -1,9 +1,8 @@
-use nom::{error::ParseError, Parser};
-
 use crate::parse::{
     segment::blank_line::BlankLineSegment,
     traits::{Parse, Segment},
 };
+use nom::{Parser, error::ParseError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlankLine<'a>(BlankLineSegment<'a>);

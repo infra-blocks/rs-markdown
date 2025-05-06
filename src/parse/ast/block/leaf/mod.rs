@@ -5,17 +5,15 @@ pub mod indented_code;
 pub mod link_reference_definition;
 pub mod thematic_break;
 
-use std::iter::FusedIterator;
-
+use crate::parse::traits::{Parse, Segments};
 use atx_heading::AtxHeading;
 use blank_line::BlankLine;
 use fenced_code::FencedCode;
 use indented_code::IndentedCode;
 use link_reference_definition::LinkReferenceDefinition;
-use nom::{branch::alt, Parser};
+use nom::{Parser, branch::alt};
+use std::iter::FusedIterator;
 use thematic_break::ThematicBreak;
-
-use crate::parse::traits::{Parse, Segments};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Leaf<'a> {

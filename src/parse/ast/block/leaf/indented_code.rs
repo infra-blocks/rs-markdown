@@ -1,11 +1,3 @@
-use std::iter::{self, FusedIterator};
-
-use nom::{
-    error::ParseError,
-    multi::{many0, many1},
-    IResult, Parser,
-};
-
 use crate::parse::{
     segment::{
         blank_line::BlankLineSegment,
@@ -13,6 +5,12 @@ use crate::parse::{
     },
     traits::{Parse, Segment, Segments},
 };
+use nom::{
+    IResult, Parser,
+    error::ParseError,
+    multi::{many0, many1},
+};
+use std::iter::{self, FusedIterator};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndentedCode<'a> {

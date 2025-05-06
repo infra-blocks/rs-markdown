@@ -2,7 +2,7 @@ use crate::parse::{
     segment::atx_heading::AtxHeadingSegment,
     traits::{Parse, Segment},
 };
-use nom::{error::ParseError, Parser};
+use nom::{Parser, error::ParseError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AtxHeading<'a>(AtxHeadingSegment<'a>);

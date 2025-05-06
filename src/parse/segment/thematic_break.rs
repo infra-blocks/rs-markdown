@@ -3,11 +3,11 @@ use crate::parse::{
     utils::{indented_by_less_than_4, is_one_of, line},
 };
 use nom::{
+    Parser,
     branch::alt,
     bytes::complete::{tag, take_while},
     character::complete::space0,
     combinator::{consumed, eof, recognize},
-    Parser,
 };
 
 /// A thematic break segment.
@@ -19,8 +19,8 @@ impl<'a> ThematicBreakSegment<'a> {
         Self(segment)
     }
 
-    fn thematic_break<Error: nom::error::ParseError<&'a str>>(
-    ) -> impl Parser<&'a str, Output = &'a str, Error = Error> {
+    fn thematic_break<Error: nom::error::ParseError<&'a str>>()
+    -> impl Parser<&'a str, Output = &'a str, Error = Error> {
         recognize((
             indented_by_less_than_4,
             alt((Self::asterisks(), Self::hyphens(), Self::underscores())),
@@ -28,8 +28,8 @@ impl<'a> ThematicBreakSegment<'a> {
         ))
     }
 
-    fn asterisks<Error: nom::error::ParseError<&'a str>>(
-    ) -> impl Parser<&'a str, Output = &'a str, Error = Error> {
+    fn asterisks<Error: nom::error::ParseError<&'a str>>()
+    -> impl Parser<&'a str, Output = &'a str, Error = Error> {
         recognize((
             tag("*"),
             space0,
@@ -40,8 +40,8 @@ impl<'a> ThematicBreakSegment<'a> {
         ))
     }
 
-    fn hyphens<Error: nom::error::ParseError<&'a str>>(
-    ) -> impl nom::Parser<&'a str, Output = &'a str, Error = Error> {
+    fn hyphens<Error: nom::error::ParseError<&'a str>>()
+    -> impl nom::Parser<&'a str, Output = &'a str, Error = Error> {
         recognize((
             tag("-"),
             space0,
@@ -52,8 +52,8 @@ impl<'a> ThematicBreakSegment<'a> {
         ))
     }
 
-    fn underscores<Error: nom::error::ParseError<&'a str>>(
-    ) -> impl Parser<&'a str, Output = &'a str, Error = Error> {
+    fn underscores<Error: nom::error::ParseError<&'a str>>()
+    -> impl Parser<&'a str, Output = &'a str, Error = Error> {
         recognize((
             tag("_"),
             space0,

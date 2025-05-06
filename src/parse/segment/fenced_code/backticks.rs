@@ -1,7 +1,7 @@
+use nom::Parser;
 use nom::character::complete::space0;
 use nom::combinator::eof;
-use nom::Parser;
-use nom::{combinator::consumed, error::ParseError, IResult};
+use nom::{IResult, combinator::consumed, error::ParseError};
 
 use crate::parse::traits::{Parse, Segment};
 use crate::parse::utils::{indented_by_less_than_4, line};
@@ -275,10 +275,10 @@ mod test {
 mod utils {
     use crate::parse::utils::is_char;
     use nom::{
+        IResult, Parser,
         bytes::complete::take_while_m_n,
         combinator::{rest, verify},
         error::ParseError,
-        IResult, Parser,
     };
 
     pub fn backticks_fence<'a, Error: ParseError<&'a str>>(

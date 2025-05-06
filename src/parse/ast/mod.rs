@@ -1,13 +1,12 @@
 pub mod block;
 
-use std::iter::FusedIterator;
-
 use super::traits::{Parse, Segments};
 use block::{
-    leaf::{link_reference_definition::LinkReferenceDefinition, Leaf},
     Block,
+    leaf::{Leaf, link_reference_definition::LinkReferenceDefinition},
 };
-use nom::{multi::many0, IResult, Parser};
+use nom::{IResult, Parser, multi::many0};
+use std::iter::FusedIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tree<'a> {

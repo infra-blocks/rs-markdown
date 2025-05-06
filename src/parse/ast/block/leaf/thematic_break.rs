@@ -1,9 +1,8 @@
-use nom::{error::ParseError, Parser};
-
 use crate::parse::{
     segment::thematic_break::ThematicBreakSegment,
     traits::{Parse, Segment},
 };
+use nom::{Parser, error::ParseError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ThematicBreak<'a>(ThematicBreakSegment<'a>);

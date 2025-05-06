@@ -1,5 +1,5 @@
 use crate::{
-    parse::ast::block::{leaf::link_reference_definition::LinkReferenceDefinition, Block},
+    parse::ast::block::{Block, leaf::link_reference_definition::LinkReferenceDefinition},
     render::display_html::DisplayHtml,
 };
 
