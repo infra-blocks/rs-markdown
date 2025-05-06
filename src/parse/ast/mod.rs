@@ -1,5 +1,7 @@
 pub mod block;
 
+use std::iter::FusedIterator;
+
 use super::traits::{Parse, Segments};
 use block::{
     leaf::{link_reference_definition::LinkReferenceDefinition, Leaf},
@@ -48,31 +50,33 @@ impl<'a> Parse<'a> for Tree<'a> {
 }
 
 impl<'a> Segments<'a> for Tree<'a> {
-    type SegmentsIter = TreeIterator<'a>;
+    type SegmentsIter = TreeSegmentsIterator<'a>;
 
     fn segments(&'a self) -> Self::SegmentsIter {
-        TreeIterator::from(self)
+        TreeSegmentsIterator::from(self)
     }
 }
 
-pub struct TreeIterator<'a> {
+pub struct TreeSegmentsIterator<'a> {
     iter: Box<dyn Iterator<Item = &'a str> + 'a>,
 }
 
-impl<'a> TreeIterator<'a> {
+impl<'a> TreeSegmentsIterator<'a> {
     fn new(iter: Box<dyn Iterator<Item = &'a str> + 'a>) -> Self {
         Self { iter }
     }
 }
 
-impl<'a> From<&'a Tree<'a>> for TreeIterator<'a> {
+impl<'a> From<&'a Tree<'a>> for TreeSegmentsIterator<'a> {
     fn from(tree: &'a Tree) -> Self {
         let iter = tree.blocks.iter().flat_map(|block| block.segments());
         Self::new(Box::new(iter))
     }
 }
 
-impl<'a> Iterator for TreeIterator<'a> {
+impl FusedIterator for TreeSegmentsIterator<'_> {}
+
+impl<'a> Iterator for TreeSegmentsIterator<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {

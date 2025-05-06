@@ -111,7 +111,7 @@ aaa
     );
 } */
 
-/* mod fenced_code {
+mod fenced_code {
     use super::*;
 
     test!(
@@ -134,13 +134,13 @@ aaa
  &gt;
 </code></pre>"
     );
-    test!(
-        example_121,
-        r"``
-foo
-``",
-        r"<p><code>foo</code></p>"
-    );
+    /* test!(
+            example_121,
+            r"``
+    foo
+    ``",
+            r"<p><code>foo</code></p>"
+        ); */
     test!(
         example_122,
         r"```
@@ -182,18 +182,20 @@ aaa
 </code></pre>"
     );
     test!(example_126, r"```", r"<pre><code></code></pre>");
+    // Added terminating new line in input.
     test!(
         example_127,
         r"`````
 
 ```
-aaa",
+aaa
+",
         r"<pre><code>
 ```
 aaa
 </code></pre>"
     );
-}*/
+}
 
 mod indented_code {
     use super::*;

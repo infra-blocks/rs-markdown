@@ -32,7 +32,7 @@ pub fn line<'a, Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, 
     alt((
         terminated(take_until("\r\n"), line_ending),
         terminated(take_until("\n"), line_ending),
-        rest,
+        verify(rest, |s: &str| !s.is_empty()),
     ))
     .parse(input)
 }
@@ -81,10 +81,8 @@ mod test {
         use super::*;
 
         #[test]
-        fn should_work_with_empty_string() {
-            let (remaining, parsed) = line::<Error<&str>>("").unwrap();
-            assert_eq!(remaining, "");
-            assert_eq!(parsed, "");
+        fn should_not_work_with_empty_string() {
+            assert!(line::<Error<&str>>("").is_err());
         }
 
         #[test]
