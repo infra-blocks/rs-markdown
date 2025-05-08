@@ -1,3 +1,4 @@
+use super::{segment::blank_line::BlankLineSegment, traits::ParseWhole};
 use nom::{
     IResult, Parser,
     branch::alt,
@@ -7,9 +8,21 @@ use nom::{
         complete::{char, line_ending, space0, space1},
     },
     combinator::{recognize, rest, verify},
-    error::ParseError,
+    error::{Error, ParseError},
     sequence::terminated,
 };
+
+// TODO: tests.
+/// Iterates through the lines of the segment and returns whether any of them
+/// is a blank line (using [is_blank_line]).
+pub fn does_not_contain_blank_line(segment: &str) -> bool {
+    for line in segment.split_inclusive('\n') {
+        if is_blank_line(line) {
+            return false;
+        }
+    }
+    true
+}
 
 /// Parses any escaped character sequence.
 ///
@@ -44,6 +57,13 @@ pub fn indented_by_less_than_4<'a, Error: ParseError<&'a str>>(
         !spaces.contains("\t") && spaces.len() < 4
     })
     .parse(input)
+}
+
+/// Returns whether the whole segment can be used to build a [BlankLineSegment].
+///
+/// It will inevitably return false if the input contains more than one line.
+pub fn is_blank_line(line: &str) -> bool {
+    BlankLineSegment::parse_whole::<Error<&str>>(line).is_ok()
 }
 
 /// Returns a predicate that returns whether the character received is the
@@ -84,6 +104,17 @@ pub fn non_whitespace<'a, Error: ParseError<&'a str>>(
     is_not(" \t\r\n").parse(input)
 }
 
+/// Returns whether the parentheses in the segment are balanced.
+///
+/// Escaped parentheses are ignored.
+pub fn parentheseses_balance(segment: &str) -> bool {
+    // Ignore escaped parentheseses by removing them.
+    let sanitized = segment.replace(r"\(", "").replace(r"\)", "");
+    // Ensure the count of opening and closing parentheseses is equal.
+    sanitized.chars().filter(|&c| c == '(').count()
+        == sanitized.chars().filter(|&c| c == ')').count()
+}
+
 /// Takes a single character matching the predicate provided.
 ///
 /// It's very similar to the [nom::character::one_of] parser, but uses a predicate
@@ -103,6 +134,45 @@ where
 mod test {
     use super::*;
     use nom::error::Error;
+
+    mod does_not_contain_blank_line {
+        use super::*;
+
+        #[test]
+        fn should_return_false_for_a_space() {
+            assert!(!does_not_contain_blank_line(" "));
+        }
+
+        #[test]
+        fn should_return_false_for_a_tab() {
+            assert!(!does_not_contain_blank_line("\t"));
+        }
+
+        #[test]
+        fn should_return_false_for_an_empty_line() {
+            assert!(!does_not_contain_blank_line("\n"));
+        }
+
+        #[test]
+        fn should_return_false_for_a_multiline_string_with_a_blank_line() {
+            assert!(!does_not_contain_blank_line("abc\n\nstuff"));
+        }
+
+        #[test]
+        fn should_return_true_for_empty_string() {
+            assert!(does_not_contain_blank_line(""));
+        }
+
+        #[test]
+        fn should_return_true_for_a_string_with_one_non_whitespace_character() {
+            assert!(does_not_contain_blank_line(" \ta\n"));
+        }
+
+        #[test]
+        fn should_return_true_for_a_multiline_string_without_blank_lines() {
+            assert!(does_not_contain_blank_line("abc\nstuff\nmore stuff"));
+        }
+    }
 
     mod escaped_sequence {
         use super::*;
@@ -248,6 +318,50 @@ mod test {
         }
     }
 
+    mod is_blank_line {
+        use super::*;
+
+        #[test]
+        fn should_return_false_with_empty_string() {
+            assert!(!is_blank_line(""));
+        }
+
+        #[test]
+        fn should_return_false_for_string_with_one_none_whitespace_character() {
+            assert!(!is_blank_line(" \ta\n"));
+        }
+
+        #[test]
+        fn should_return_false_for_2_blank_lines() {
+            assert!(!is_blank_line("\n\n"));
+        }
+
+        #[test]
+        fn should_return_false_for_a_blank_line_followed_by_a_character() {
+            assert!(!is_blank_line("\nabc"));
+        }
+
+        #[test]
+        fn should_return_true_with_space() {
+            assert!(is_blank_line(" "));
+        }
+
+        #[test]
+        fn should_return_true_with_tab() {
+            assert!(is_blank_line("\t"));
+        }
+
+        #[test]
+        fn should_return_true_for_carriage_return() {
+            assert!(is_blank_line("\r\n"));
+        }
+
+        #[test]
+        fn shoud_return_true_for_newline() {
+            assert!(is_blank_line("\n"));
+        }
+    }
+
     mod non_whitespace {
         use super::*;
 
@@ -281,6 +395,50 @@ mod test {
             let (remaining, parsed) = non_whitespace::<Error<&str>>("abc def").unwrap();
             assert_eq!(remaining, " def");
             assert_eq!(parsed, "abc");
+        }
+    }
+
+    mod parentheseses_balance {
+        use super::*;
+
+        #[test]
+        fn should_reject_single_opening_parenthesis() {
+            assert!(!parentheseses_balance("("));
+        }
+
+        #[test]
+        fn should_reject_single_closing_parenthesis() {
+            assert!(!parentheseses_balance(")"));
+        }
+
+        #[test]
+        fn should_reject_unbalanced_parentheses() {
+            assert!(!parentheseses_balance("(foo(and(bar))"));
+        }
+
+        #[test]
+        fn should_accept_an_empty_string() {
+            assert!(parentheseses_balance(""));
+        }
+
+        #[test]
+        fn should_accept_string_without_parentheses() {
+            assert!(parentheseses_balance("foo"));
+        }
+
+        #[test]
+        fn should_accept_unbalanced_escaped_parentheses() {
+            assert!(parentheseses_balance(r"\(\(foo\)and\(bar\)"));
+        }
+
+        #[test]
+        fn should_accept_balanced_parentheses() {
+            assert!(parentheseses_balance("(foo(and(bar)))"));
+        }
+
+        #[test]
+        fn should_accept_balanced_parentheses_and_ignore_escaped_ones() {
+            assert!(parentheseses_balance(r"(foo\(blip(and(bar)))"));
         }
     }
 
