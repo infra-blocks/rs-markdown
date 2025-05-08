@@ -5,14 +5,12 @@ use crate::parse::{
 use nom::{IResult, Parser, error::ParseError};
 
 /// A link destination segment, as described in the [spec](https://spec.commonmark.org/0.31.2/#link-destination).
-pub struct LinkDestination<'a> {
-    segment: LinkDestinationSegment<'a>,
-}
+pub struct LinkDestination<'a>(LinkDestinationSegment<'a>);
 
 impl<'a> LinkDestination<'a> {
     /// Creates a new [LinkDestination] from a [LinkDestinationSegment].
     fn new(segment: LinkDestinationSegment<'a>) -> Self {
-        Self { segment }
+        Self(segment)
     }
 }
 
@@ -27,6 +25,6 @@ impl<'a> Parse<'a> for LinkDestination<'a> {
 
 impl<'a> Segment<'a> for LinkDestination<'a> {
     fn segment(&self) -> &'a str {
-        self.segment.segment()
+        self.0.segment()
     }
 }
