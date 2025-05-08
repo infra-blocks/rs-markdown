@@ -84,7 +84,10 @@ pub fn non_whitespace<'a, Error: ParseError<&'a str>>(
     is_not(" \t\r\n").parse(input)
 }
 
-// TODO: test
+/// Takes a single character matching the predicate provided.
+///
+/// It's very similar to the [nom::character::one_of] parser, but uses a predicate
+/// instead of a list of characters.
 pub fn take_one<'a, F, Error>(predicate: F) -> impl Parser<&'a str, Output = char, Error = Error>
 where
     F: Fn(char) -> bool,
@@ -278,6 +281,29 @@ mod test {
             let (remaining, parsed) = non_whitespace::<Error<&str>>("abc def").unwrap();
             assert_eq!(remaining, " def");
             assert_eq!(parsed, "abc");
+        }
+    }
+
+    mod take_one {
+        use super::*;
+
+        #[test]
+        fn should_fail_with_empty_string() {
+            assert!(take_one::<_, Error<&str>>(is_char('a')).parse("").is_err());
+        }
+
+        #[test]
+        fn should_fail_with_non_matching_character() {
+            assert!(take_one::<_, Error<&str>>(is_char('a')).parse("b").is_err());
+        }
+
+        #[test]
+        fn should_work_with_matching_character() {
+            let (remaining, parsed) = take_one::<_, Error<&str>>(|c| c.is_ascii_control())
+                .parse("\x00ab")
+                .unwrap();
+            assert_eq!(remaining, "ab");
+            assert_eq!(parsed, '\x00');
         }
     }
 }
