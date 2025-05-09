@@ -1,6 +1,6 @@
 use crate::parse::{
     traits::{Parse, Segment},
-    utils::take_one,
+    utils::{parentheseses_balance, take_one},
 };
 use nom::{
     IResult, Parser,
@@ -35,7 +35,7 @@ impl<'a> Parse<'a> for UnbracketedLinkDestinationSegment<'a> {
                 take_one(utils::is_opening_char),
                 take_while(utils::is_continuation_char),
             )),
-            utils::parentheseses_balance,
+            parentheseses_balance,
         )
         .map(Self::new)
         .parse(input)
@@ -118,14 +118,6 @@ mod utils {
         character != ' ' && !character.is_ascii_control() && character != '\n'
     }
 
-    pub fn parentheseses_balance(segment: &str) -> bool {
-        // Ignore escaped parentheseses by removing them.
-        let sanitized = segment.replace(r"\(", "").replace(r"\)", "");
-        // Ensure the count of opening and closing parentheseses is equal.
-        sanitized.chars().filter(|&c| c == '(').count()
-            == sanitized.chars().filter(|&c| c == ')').count()
-    }
-
     #[cfg(test)]
     mod test {
         use super::*;
@@ -185,50 +177,6 @@ mod utils {
             #[test]
             fn should_accept_opening_angle_bracket() {
                 assert!(is_continuation_char('<'));
-            }
-        }
-
-        mod parentheseses_balance {
-            use super::*;
-
-            #[test]
-            fn should_reject_single_opening_parenthesis() {
-                assert!(!parentheseses_balance("("));
-            }
-
-            #[test]
-            fn should_reject_single_closing_parenthesis() {
-                assert!(!parentheseses_balance(")"));
-            }
-
-            #[test]
-            fn should_reject_unbalanced_parentheses() {
-                assert!(!parentheseses_balance("(foo(and(bar))"));
-            }
-
-            #[test]
-            fn should_accept_an_empty_string() {
-                assert!(parentheseses_balance(""));
-            }
-
-            #[test]
-            fn should_accept_string_without_parentheses() {
-                assert!(parentheseses_balance("foo"));
-            }
-
-            #[test]
-            fn should_accept_unbalanced_escaped_parentheses() {
-                assert!(parentheseses_balance(r"\(\(foo\)and\(bar\)"));
-            }
-
-            #[test]
-            fn should_accept_balanced_parentheses() {
-                assert!(parentheseses_balance("(foo(and(bar)))"));
-            }
-
-            #[test]
-            fn should_accept_balanced_parentheses_and_ignore_escaped_ones() {
-                assert!(parentheseses_balance(r"(foo\(blip(and(bar)))"));
             }
         }
     }
