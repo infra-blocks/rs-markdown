@@ -1,6 +1,9 @@
-use crate::parse::{
-    traits::{Parse, Segment},
-    utils::{does_not_contain_blank_line, escaped_sequence},
+use crate::{
+    inline::link::DoubleQuotesLinkTitle,
+    parse::{
+        traits::{Parse, Segment},
+        utils::{does_not_contain_blank_line, escaped_sequence},
+    },
 };
 use nom::{
     IResult, Parser,
@@ -11,15 +14,6 @@ use nom::{
     multi::many0,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DoubleQuotesLinkTitleSegment<'a>(&'a str);
-
-impl<'a> DoubleQuotesLinkTitleSegment<'a> {
-    fn new(segment: &'a str) -> Self {
-        Self(segment)
-    }
-}
-
 /*
 From the spec:
 A link title consists of either:
@@ -28,7 +22,7 @@ A link title consists of either:
 ...
 Although link titles may span multiple lines, they may not contain a blank line.
 */
-impl<'a> Parse<'a> for DoubleQuotesLinkTitleSegment<'a> {
+impl<'a> Parse<'a> for DoubleQuotesLinkTitle<'a> {
     fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
@@ -46,12 +40,6 @@ impl<'a> Parse<'a> for DoubleQuotesLinkTitleSegment<'a> {
     }
 }
 
-impl<'a> Segment<'a> for DoubleQuotesLinkTitleSegment<'a> {
-    fn segment(&self) -> &'a str {
-        self.0
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -64,7 +52,7 @@ mod test {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(DoubleQuotesLinkTitleSegment::parse::<Error<&str>>($segment).is_err());
+                    assert!(DoubleQuotesLinkTitle::parse::<Error<&str>>($segment).is_err());
                 }
             };
         }
@@ -77,8 +65,8 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        DoubleQuotesLinkTitleSegment::parse::<Error<&str>>($segment),
-                        Ok(($remaining, DoubleQuotesLinkTitleSegment::new($parsed)))
+                        DoubleQuotesLinkTitle::parse::<Error<&str>>($segment),
+                        Ok(($remaining, DoubleQuotesLinkTitle::new($parsed)))
                     );
                 }
             };

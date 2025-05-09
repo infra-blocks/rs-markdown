@@ -1,6 +1,8 @@
+mod api;
 pub(crate) mod parse;
 pub mod render;
 
+pub use api::*;
 use nom::error::Error;
 pub use parse::ast::Tree;
 use parse::traits::ParseWhole;

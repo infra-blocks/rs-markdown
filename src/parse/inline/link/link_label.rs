@@ -1,6 +1,6 @@
-use crate::parse::{
-    traits::{Parse, Segment},
-    utils::escaped_sequence,
+use crate::{
+    inline::link::LinkLabel,
+    parse::{traits::Parse, utils::escaped_sequence},
 };
 use nom::{
     IResult, Parser,
@@ -11,15 +11,6 @@ use nom::{
     multi::many1,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LinkLabelSegment<'a>(&'a str);
-
-impl<'a> LinkLabelSegment<'a> {
-    fn new(segment: &'a str) -> Self {
-        Self(segment)
-    }
-}
-
 /*
 From the spec:
 A link label begins with a left bracket ([) and ends with the first right bracket (]) that is not backslash-escaped.
@@ -27,7 +18,7 @@ Between these brackets there must be at least one character that is not a space,
 Unescaped square bracket characters are not allowed inside the opening and closing square brackets of link labels.
 A link label can have at most 999 characters inside the square brackets.
 */
-impl<'a> Parse<'a> for LinkLabelSegment<'a> {
+impl<'a> Parse<'a> for LinkLabel<'a> {
     fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
@@ -45,12 +36,6 @@ impl<'a> Parse<'a> for LinkLabelSegment<'a> {
     }
 }
 
-impl<'a> Segment<'a> for LinkLabelSegment<'a> {
-    fn segment(&self) -> &'a str {
-        self.0
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -63,7 +48,7 @@ mod test {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(LinkLabelSegment::parse::<Error<&str>>($segment).is_err());
+                    assert!(LinkLabel::parse::<Error<&str>>($segment).is_err());
                 }
             };
         }
@@ -76,8 +61,8 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        LinkLabelSegment::parse::<Error<&str>>($segment),
-                        Ok(($remaining, LinkLabelSegment::new($parsed)))
+                        LinkLabel::parse::<Error<&str>>($segment),
+                        Ok(($remaining, LinkLabel::new($parsed)))
                     );
                 }
             };

@@ -1,5 +1,4 @@
 pub mod block;
-pub mod inline;
 
 use super::traits::{Parse, Segments};
 use block::{
