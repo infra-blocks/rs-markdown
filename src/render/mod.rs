@@ -1,3 +1,4 @@
 mod ast;
 mod display_html;
-pub mod to_html;
+
+pub(crate) use display_html::*;

@@ -1,13 +1,18 @@
-use super::blank_line::BlankLineSegment;
-use crate::parse::{
-    traits::{Parse, Segment},
-    utils::{indented_by_at_least_4, line, non_whitespace},
+// TODO: split into many modules.
+use crate::{
+    Segment,
+    ast::BlankLine,
+    parse::{
+        traits::Parse,
+        utils::{indented_by_at_least_4, line, non_whitespace},
+    },
 };
 use nom::{
     IResult, Parser,
     branch::alt,
     combinator::{recognize, rest},
     error::ParseError,
+    multi::{many0, many1},
 };
 
 /// An indented code segment.
@@ -53,7 +58,7 @@ impl<'a> Segment<'a> for IndentedCodeSegment<'a> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IndentedCodeOrBlankLineSegment<'a> {
     IndentedCode(IndentedCodeSegment<'a>),
-    BlankLine(BlankLineSegment<'a>),
+    BlankLine(BlankLine<'a>),
 }
 
 impl<'a> IndentedCodeOrBlankLineSegment<'a> {
@@ -68,7 +73,7 @@ impl<'a> IndentedCodeOrBlankLineSegment<'a> {
     }
 
     #[allow(dead_code)]
-    pub fn unwrap_blank_line(self) -> BlankLineSegment<'a> {
+    pub fn unwrap_blank_line(self) -> BlankLine<'a> {
         if let Self::BlankLine(segment) = self {
             segment
         } else {
@@ -91,8 +96,8 @@ impl<'a> From<IndentedCodeSegment<'a>> for IndentedCodeOrBlankLineSegment<'a> {
     }
 }
 
-impl<'a> From<BlankLineSegment<'a>> for IndentedCodeOrBlankLineSegment<'a> {
-    fn from(segment: BlankLineSegment<'a>) -> Self {
+impl<'a> From<BlankLine<'a>> for IndentedCodeOrBlankLineSegment<'a> {
+    fn from(segment: BlankLine<'a>) -> Self {
         Self::BlankLine(segment)
     }
 }
@@ -101,7 +106,7 @@ impl<'a> Parse<'a> for IndentedCodeOrBlankLineSegment<'a> {
     fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         alt((
             IndentedCodeSegment::parse.map(Self::from),
-            BlankLineSegment::parse.map(Self::from),
+            BlankLine::parse.map(Self::from),
         ))
         .parse(input)
     }
@@ -113,6 +118,45 @@ impl<'a> Segment<'a> for IndentedCodeOrBlankLineSegment<'a> {
             Self::IndentedCode(segment) => segment.segment(),
             Self::BlankLine(blank_line) => blank_line.segment(),
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContinuationSegments<'a> {
+    pub segments: Vec<IndentedCodeOrBlankLineSegment<'a>>,
+    pub closing_segment: IndentedCodeSegment<'a>,
+}
+
+impl<'a> ContinuationSegments<'a> {
+    pub(crate) fn new(
+        segments: Vec<IndentedCodeOrBlankLineSegment<'a>>,
+        closing_segment: IndentedCodeSegment<'a>,
+    ) -> Self {
+        Self {
+            segments,
+            closing_segment,
+        }
+    }
+}
+
+impl<'a> Parse<'a> for ContinuationSegments<'a> {
+    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+        let (remaining, blocks) =
+            many1((many0(BlankLine::parse), IndentedCodeSegment::parse)).parse(input)?;
+
+        let mut segments = Vec::new();
+        for (blank_lines, indented_code_segment) in blocks {
+            segments.extend(
+                blank_lines
+                    .into_iter()
+                    .map(IndentedCodeOrBlankLineSegment::from),
+            );
+            segments.push(IndentedCodeOrBlankLineSegment::from(indented_code_segment));
+        }
+        // The last segment is guaranteed to be an indented code segment given our algorithm.
+        let closing_segment = segments.pop().unwrap().unwrap_indented_code();
+        let continuation_segments = ContinuationSegments::new(segments, closing_segment);
+        Ok((remaining, continuation_segments))
     }
 }
 
@@ -183,7 +227,7 @@ mod test {
                 Ok((
                     "",
                     IndentedCodeOrBlankLineSegment::BlankLine(
-                        BlankLineSegment::parse_whole::<Error<&str>>(segment).unwrap()
+                        BlankLine::parse_whole::<Error<&str>>(segment).unwrap()
                     )
                 ))
             )

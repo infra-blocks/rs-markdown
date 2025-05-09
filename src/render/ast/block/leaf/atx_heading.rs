@@ -1,10 +1,6 @@
 use crate::{
-    parse::{
-        ast::block::leaf::{
-            atx_heading::AtxHeading, link_reference_definition::LinkReferenceDefinition,
-        },
-        traits::Segment,
-    },
+    Segment,
+    ast::{AtxHeading, LinkReferenceDefinition},
     render::display_html::DisplayHtml,
 };
 

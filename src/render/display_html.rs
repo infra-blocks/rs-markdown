@@ -1,4 +1,4 @@
-use crate::parse::ast::block::leaf::link_reference_definition::LinkReferenceDefinition;
+use crate::ast::LinkReferenceDefinition;
 
 pub(crate) trait DisplayHtml {
     fn display_html(

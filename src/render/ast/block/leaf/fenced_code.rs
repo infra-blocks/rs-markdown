@@ -1,8 +1,7 @@
-use crate::parse::ast::block::leaf::{
-    fenced_code::FencedCode, link_reference_definition::LinkReferenceDefinition,
+use crate::{
+    ast::{FencedCode, LinkReferenceDefinition},
+    render::DisplayHtml,
 };
-
-use super::DisplayHtml;
 
 trait PushContentSegment {
     fn push_content_segment(&mut self, segment: &str);

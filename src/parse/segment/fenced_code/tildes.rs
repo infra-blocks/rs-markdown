@@ -5,9 +5,12 @@ use nom::{
     error::ParseError,
 };
 
-use crate::parse::{
-    traits::{Parse, Segment},
-    utils::{indented_by_less_than_4, line},
+use crate::{
+    Segment,
+    parse::{
+        traits::Parse,
+        utils::{indented_by_less_than_4, line},
+    },
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,18 +23,6 @@ pub struct TildesFencedCodeOpeningSegment<'a> {
 }
 
 impl<'a> TildesFencedCodeOpeningSegment<'a> {
-    pub fn indent(&self) -> usize {
-        self.indent
-    }
-
-    pub fn fence_length(&self) -> usize {
-        self.fence_length
-    }
-
-    pub fn info_string(&self) -> &'a str {
-        self.info_string
-    }
-
     fn new(segment: &'a str, indent: usize, fence_length: usize, info_string: &'a str) -> Self {
         Self {
             segment,
@@ -76,14 +67,6 @@ impl<'a> TildesFencedCodeClosingSegment<'a> {
     /// This is only true if the closing segment's fence is at least as long as the opening segment's fence.
     pub fn closes(&self, opening: &TildesFencedCodeOpeningSegment) -> bool {
         self.fence_length >= opening.fence_length
-    }
-
-    pub fn indent(&self) -> usize {
-        self.indent
-    }
-
-    pub fn fence_length(&self) -> usize {
-        self.fence_length
     }
 
     fn new(segment: &'a str, indent: usize, fence_length: usize) -> Self {
