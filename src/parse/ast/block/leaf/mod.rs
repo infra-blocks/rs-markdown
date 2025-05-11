@@ -6,7 +6,7 @@ pub mod link_reference_definition;
 pub mod setext_heading;
 pub mod thematic_break;
 
-use crate::parse::traits::{Parse, Segments};
+use crate::parse::traits::{NomParse, Segments};
 use atx_heading::AtxHeading;
 use blank_line::BlankLine;
 use fenced_code::FencedCode;
@@ -26,16 +26,16 @@ pub enum Leaf<'a> {
     ThematicBreak(thematic_break::ThematicBreak<'a>),
 }
 
-impl<'a> Parse<'a> for Leaf<'a> {
-    fn parse<Error: nom::error::ParseError<&'a str>>(
+impl<'a> NomParse<'a> for Leaf<'a> {
+    fn nom_parse<Error: nom::error::ParseError<&'a str>>(
         input: &'a str,
     ) -> nom::IResult<&'a str, Self, Error> {
         alt((
-            AtxHeading::parse.map(Leaf::AtxHeading),
-            BlankLine::parse.map(Leaf::BlankLine),
-            FencedCode::parse.map(Leaf::FencedCode),
-            IndentedCode::parse.map(Leaf::IndentedCode),
-            ThematicBreak::parse.map(Leaf::ThematicBreak),
+            AtxHeading::nom_parse.map(Leaf::AtxHeading),
+            BlankLine::nom_parse.map(Leaf::BlankLine),
+            FencedCode::nom_parse.map(Leaf::FencedCode),
+            IndentedCode::nom_parse.map(Leaf::IndentedCode),
+            ThematicBreak::nom_parse.map(Leaf::ThematicBreak),
         ))
         .parse(input)
     }

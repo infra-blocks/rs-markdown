@@ -1,5 +1,5 @@
 use crate::parse::{
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
     utils::{indented_by_less_than_4, is_char, line},
 };
 use nom::{
@@ -14,7 +14,7 @@ use nom::{
 pub struct SetextHeadingHyphensUnderlineSegment<'a>(&'a str);
 
 impl<'a> SetextHeadingHyphensUnderlineSegment<'a> {
-    fn new(segment: &'a str) -> Self {
+    pub(super) fn new(segment: &'a str) -> Self {
         Self(segment)
     }
 
@@ -23,8 +23,8 @@ impl<'a> SetextHeadingHyphensUnderlineSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for SetextHeadingHyphensUnderlineSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for SetextHeadingHyphensUnderlineSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -51,32 +51,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(
-                        SetextHeadingHyphensUnderlineSegment::parse::<Error<&str>>($segment)
-                            .is_err()
-                    );
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        SetextHeadingHyphensUnderlineSegment::parse::<Error<&str>>($segment),
-                        Ok(("", SetextHeadingHyphensUnderlineSegment::new($segment)))
-                    );
-                }
-            };
-        }
-
+        test_parse_macros!(SetextHeadingHyphensUnderlineSegment);
         failure_case!(should_fail_with_empty, "");
         failure_case!(should_fail_with_blank_line, "\n");
         failure_case!(should_fail_with_4_idents, "    -\n");

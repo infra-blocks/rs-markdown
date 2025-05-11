@@ -2,7 +2,7 @@ mod double_quotes;
 mod parentheses;
 mod single_quotes;
 
-use crate::parse::traits::{Parse, Segment};
+use crate::parse::traits::{NomParse, Segment};
 pub use double_quotes::*;
 use nom::{IResult, Parser, branch::alt, error::ParseError};
 pub use parentheses::*;
@@ -33,15 +33,15 @@ impl<'a> From<ParenthesesLinkTitleSegment<'a>> for LinkTitleSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for LinkTitleSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for LinkTitleSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
         alt((
-            SingleQuotesLinkTitleSegment::parse.map(Self::from),
-            DoubleQuotesLinkTitleSegment::parse.map(Self::from),
-            ParenthesesLinkTitleSegment::parse.map(Self::from),
+            SingleQuotesLinkTitleSegment::nom_parse.map(Self::from),
+            DoubleQuotesLinkTitleSegment::nom_parse.map(Self::from),
+            ParenthesesLinkTitleSegment::nom_parse.map(Self::from),
         ))
         .parse(input)
     }
@@ -70,7 +70,7 @@ mod test {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(LinkTitleSegment::parse::<Error<&str>>($segment).is_err());
+                    assert!(LinkTitleSegment::nom_parse::<Error<&str>>($segment).is_err());
                 }
             };
         }
@@ -80,7 +80,7 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        LinkTitleSegment::parse::<Error<&str>>($segment),
+                        LinkTitleSegment::nom_parse::<Error<&str>>($segment),
                         Ok(("", $expected))
                     );
                 }

@@ -1,6 +1,6 @@
 use crate::parse::{
     segment::fenced_code::{BackticksFencedCodeClosingSegment, BackticksFencedCodeOpeningSegment},
-    traits::{Parse, Segment, Segments},
+    traits::{NomParse, Segment, Segments},
     utils::line,
 };
 use nom::{IResult, Parser, combinator::recognize, error::ParseError};
@@ -33,15 +33,15 @@ impl<'a> BackticksFencedCode<'a> {
     }
 }
 
-impl<'a> Parse<'a> for BackticksFencedCode<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for BackticksFencedCode<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         let (mut remaining, opening_segment) =
-            BackticksFencedCodeOpeningSegment::parse::<Error>(input)?;
+            BackticksFencedCodeOpeningSegment::nom_parse::<Error>(input)?;
         let mut content_segments = Vec::new();
         // We then loop until we find a closing segment for the opening segment or the end of input.
         let (remaining, closing_segment) = loop {
             let Ok((inner, closing_segment)) =
-                BackticksFencedCodeClosingSegment::parse::<Error>(remaining)
+                BackticksFencedCodeClosingSegment::nom_parse::<Error>(remaining)
             // If it's not a closing segment, we just add it to the content.
             else {
                 // Take the line. and count it as content segment.
@@ -183,7 +183,7 @@ mod test {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(BackticksFencedCode::parse::<Error<&str>>($segment).is_err());
+                    assert!(BackticksFencedCode::nom_parse::<Error<&str>>($segment).is_err());
                 }
             };
         }
@@ -193,7 +193,7 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        BackticksFencedCode::parse::<Error<&str>>($segment),
+                        BackticksFencedCode::nom_parse::<Error<&str>>($segment),
                         Ok(("", $expected))
                     );
                 }

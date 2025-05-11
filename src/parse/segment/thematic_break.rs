@@ -1,5 +1,5 @@
 use crate::parse::{
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
     utils::{indented_by_less_than_4, is_one_of, line},
 };
 use nom::{
@@ -65,8 +65,8 @@ impl<'a> ThematicBreakSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ThematicBreakSegment<'a> {
-    fn parse<Error: nom::error::ParseError<&'a str>>(
+impl<'a> NomParse<'a> for ThematicBreakSegment<'a> {
+    fn nom_parse<Error: nom::error::ParseError<&'a str>>(
         input: &'a str,
     ) -> nom::IResult<&'a str, Self, Error> {
         consumed(line.and_then(Self::thematic_break()))
@@ -87,28 +87,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(ThematicBreakSegment::parse::<Error<&str>>($segment.clone()).is_err())
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        ThematicBreakSegment::parse::<Error<&str>>($segment.clone()),
-                        Ok(("", ThematicBreakSegment::new($segment)))
-                    )
-                }
-            };
-        }
+        test_parse_macros!(ThematicBreakSegment);
 
         failure_case!(should_reject_empty, "");
         failure_case!(should_reject_blank_line, "  \n");

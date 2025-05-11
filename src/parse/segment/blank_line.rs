@@ -1,6 +1,6 @@
-use crate::parse::traits::{Parse, Segment};
+use crate::parse::traits::{NomParse, Segment};
 use nom::{
-    Parser,
+    IResult, Parser,
     branch::alt,
     character::complete::{line_ending, space0, space1},
     combinator::{consumed, eof},
@@ -19,8 +19,8 @@ impl<'a> BlankLineSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for BlankLineSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for BlankLineSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(alt(((space0, line_ending), (space1, eof))))
             .map(|(segment, _)| Self::new(segment))
             .parse(input)
@@ -39,28 +39,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(BlankLineSegment::parse::<Error<&str>>($segment).is_err())
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        BlankLineSegment::parse::<Error<&str>>($segment.clone()),
-                        Ok(("", BlankLineSegment::new($segment)))
-                    )
-                }
-            };
-        }
+        test_parse_macros!(BlankLineSegment);
 
         failure_case!(should_reject_empty, "");
         failure_case!(should_reject_line_with_a_char, "    a\n");
@@ -69,5 +50,6 @@ mod test {
         success_case!(should_work_with_a_single_newline, "\n");
         success_case!(should_work_with_a_single_tab, "\t");
         success_case!(should_work_with_any_whitespace, " \t\r\n");
+        success_case!(should_stop_after_newline, "\nhello?", "\n", "hello?");
     }
 }

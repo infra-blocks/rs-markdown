@@ -3,7 +3,7 @@ use crate::parse::{
         blank_line::BlankLineSegment,
         indented_code::{IndentedCodeOrBlankLineSegment, IndentedCodeSegment},
     },
-    traits::{Parse, Segment, Segments},
+    traits::{NomParse, Segment, Segments},
 };
 use nom::{
     IResult, Parser,
@@ -41,10 +41,10 @@ impl<'a> IndentedCode<'a> {
     }
 }
 
-impl<'a> Parse<'a> for IndentedCode<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        let (remaining, opening_segment) = IndentedCodeSegment::parse::<Error>(input)?;
-        match ContinuationSegments::parse::<Error>(remaining) {
+impl<'a> NomParse<'a> for IndentedCode<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+        let (remaining, opening_segment) = IndentedCodeSegment::nom_parse::<Error>(input)?;
+        match ContinuationSegments::nom_parse::<Error>(remaining) {
             Ok((remaining, continuation_segments)) => {
                 let indented_code =
                     IndentedCode::multi_segments(opening_segment, continuation_segments);
@@ -142,10 +142,13 @@ impl<'a> ContinuationSegments<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ContinuationSegments<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        let (remaining, blocks) =
-            many1((many0(BlankLineSegment::parse), IndentedCodeSegment::parse)).parse(input)?;
+impl<'a> NomParse<'a> for ContinuationSegments<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+        let (remaining, blocks) = many1((
+            many0(BlankLineSegment::nom_parse),
+            IndentedCodeSegment::nom_parse,
+        ))
+        .parse(input)?;
 
         let mut segments = Vec::new();
         for (blank_lines, indented_code_segment) in blocks {
@@ -170,14 +173,14 @@ mod test {
     // Tests that it properly strips off trailing blank lines when present.
     mod parse {
         use super::*;
-        use crate::parse::traits::ParseWhole;
+        use crate::parse::{input::ParseWholeSegment, traits::ParseWhole};
         use nom::error::Error;
 
         macro_rules! failure_case {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(IndentedCode::parse::<Error<&str>>($segment.clone()).is_err())
+                    assert!(IndentedCode::nom_parse::<Error<&str>>($segment.clone()).is_err())
                 }
             };
         }
@@ -190,7 +193,7 @@ mod test {
                 #[test]
                 fn $test() {
                     let (remaining, indented_code) =
-                        IndentedCode::parse::<Error<&str>>($segment.clone()).unwrap();
+                        IndentedCode::nom_parse::<Error<&str>>($segment.clone()).unwrap();
                     assert_eq!(indented_code, $expected);
                     assert_eq!(remaining, $remaining);
                 }
@@ -255,7 +258,7 @@ But not this one.",
                 ContinuationSegments::new(
                     vec![
                         IndentedCodeOrBlankLineSegment::from(
-                            BlankLineSegment::parse_whole::<Error<&str>>(" \n").unwrap()
+                            BlankLineSegment::parse_whole_segment(" \n").unwrap()
                         ),
                         IndentedCodeOrBlankLineSegment::from(
                             IndentedCodeSegment::parse_whole::<Error<&str>>(
@@ -264,7 +267,7 @@ But not this one.",
                             .unwrap()
                         ),
                         IndentedCodeOrBlankLineSegment::from(
-                            BlankLineSegment::parse_whole::<Error<&str>>(" \n").unwrap()
+                            BlankLineSegment::parse_whole_segment(" \n").unwrap()
                         )
                     ],
                     IndentedCodeSegment::parse_whole::<Error<&str>>("    And so was that one.\n")

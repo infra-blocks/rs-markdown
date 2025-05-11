@@ -1,6 +1,6 @@
 use crate::parse::{
     segment::atx_heading::AtxHeadingSegment,
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
 };
 use nom::{Parser, error::ParseError};
 
@@ -21,9 +21,9 @@ impl<'a> AtxHeading<'a> {
     }
 }
 
-impl<'a> Parse<'a> for AtxHeading<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
-        AtxHeadingSegment::parse.map(Self::new).parse(input)
+impl<'a> NomParse<'a> for AtxHeading<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
+        AtxHeadingSegment::nom_parse.map(Self::new).parse(input)
     }
 }
 

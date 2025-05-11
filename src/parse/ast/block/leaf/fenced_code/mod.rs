@@ -7,7 +7,7 @@ pub use tildes::*;
 use nom::{Parser, branch::alt, error::ParseError};
 use std::iter::FusedIterator;
 
-use crate::parse::traits::{Parse, Segments};
+use crate::parse::traits::{NomParse, Segments};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FencedCode<'a> {
@@ -33,14 +33,14 @@ impl<'a> From<TildesFencedCode<'a>> for FencedCode<'a> {
     }
 }
 
-impl<'a> Parse<'a> for FencedCode<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for FencedCode<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
         alt((
-            BackticksFencedCode::parse.map(Self::from),
-            TildesFencedCode::parse.map(Self::from),
+            BackticksFencedCode::nom_parse.map(Self::from),
+            TildesFencedCode::nom_parse.map(Self::from),
         ))
         .parse(input)
     }

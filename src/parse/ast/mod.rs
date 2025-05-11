@@ -1,7 +1,7 @@
 pub mod block;
 pub mod inline;
 
-use super::traits::{Parse, Segments};
+use super::traits::{NomParse, Segments};
 use block::{
     Block,
     leaf::{Leaf, link_reference_definition::LinkReferenceDefinition},
@@ -41,11 +41,11 @@ impl<'a> From<Vec<Block<'a>>> for Tree<'a> {
     }
 }
 
-impl<'a> Parse<'a> for Tree<'a> {
-    fn parse<Error: nom::error::ParseError<&'a str>>(
+impl<'a> NomParse<'a> for Tree<'a> {
+    fn nom_parse<Error: nom::error::ParseError<&'a str>>(
         input: &'a str,
     ) -> IResult<&'a str, Self, Error> {
-        many0(Block::parse).map(Self::from).parse(input)
+        many0(Block::nom_parse).map(Self::from).parse(input)
     }
 }
 

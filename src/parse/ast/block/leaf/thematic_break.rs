@@ -1,6 +1,6 @@
 use crate::parse::{
     segment::thematic_break::ThematicBreakSegment,
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
 };
 use nom::{Parser, error::ParseError};
 
@@ -13,9 +13,9 @@ impl<'a> ThematicBreak<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ThematicBreak<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
-        ThematicBreakSegment::parse.map(Self::new).parse(input)
+impl<'a> NomParse<'a> for ThematicBreak<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
+        ThematicBreakSegment::nom_parse.map(Self::new).parse(input)
     }
 }
 

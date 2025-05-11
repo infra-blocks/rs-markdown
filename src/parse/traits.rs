@@ -7,8 +7,8 @@ use std::{fmt::Debug, iter};
 /// The trait formalizing the parsing interface of structs.
 ///
 /// It is a thin wrapper around [nom]'s parsing semantics.
-pub trait Parse<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+pub trait NomParse<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized;
 }
@@ -37,12 +37,12 @@ pub trait ParseWhole<'a> {
 
 impl<'a, T> ParseWhole<'a> for T
 where
-    T: Parse<'a>,
+    T: NomParse<'a>,
 {
     fn parse_whole<Error: ParseError<&'a str>>(
         input: &'a str,
     ) -> Result<Self, ParseWholeError<'a, Error>> {
-        match Self::parse(input) {
+        match Self::nom_parse(input) {
             Ok((remaining, result)) => {
                 if remaining.is_empty() {
                     Ok(result)

@@ -1,6 +1,6 @@
 use crate::parse::{
     segment::link::LinkTitleSegment,
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
 };
 use nom::{IResult, Parser, error::ParseError};
 
@@ -14,12 +14,12 @@ impl<'a> LinkTitle<'a> {
     }
 }
 
-impl<'a> Parse<'a> for LinkTitle<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for LinkTitle<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
-        LinkTitleSegment::parse.map(Self::new).parse(input)
+        LinkTitleSegment::nom_parse.map(Self::new).parse(input)
     }
 }
 

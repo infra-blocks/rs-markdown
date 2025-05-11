@@ -3,7 +3,7 @@ pub mod leaf;
 
 use std::iter::FusedIterator;
 
-use crate::parse::traits::{Parse, Segments};
+use crate::parse::traits::{NomParse, Segments};
 use leaf::Leaf;
 use nom::Parser;
 
@@ -12,11 +12,11 @@ pub enum Block<'a> {
     Leaf(Leaf<'a>),
 }
 
-impl<'a> Parse<'a> for Block<'a> {
-    fn parse<Error: nom::error::ParseError<&'a str>>(
+impl<'a> NomParse<'a> for Block<'a> {
+    fn nom_parse<Error: nom::error::ParseError<&'a str>>(
         input: &'a str,
     ) -> nom::IResult<&'a str, Self, Error> {
-        Leaf::parse.map(Block::Leaf).parse(input)
+        Leaf::nom_parse.map(Block::Leaf).parse(input)
     }
 }
 

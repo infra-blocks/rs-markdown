@@ -4,7 +4,7 @@ mod unbracketed;
 pub use bracketed::*;
 pub use unbracketed::*;
 
-use crate::parse::traits::{Parse, Segment};
+use crate::parse::traits::{NomParse, Segment};
 use nom::{IResult, Parser, branch::alt, error::ParseError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -25,14 +25,14 @@ impl<'a> From<UnbracketedLinkDestinationSegment<'a>> for LinkDestinationSegment<
     }
 }
 
-impl<'a> Parse<'a> for LinkDestinationSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for LinkDestinationSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
         alt((
-            BracketedLinkDestinationSegment::parse.map(Self::from),
-            UnbracketedLinkDestinationSegment::parse.map(Self::from),
+            BracketedLinkDestinationSegment::nom_parse.map(Self::from),
+            UnbracketedLinkDestinationSegment::nom_parse.map(Self::from),
         ))
         .parse(input)
     }
@@ -53,29 +53,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::traits::StrictParse;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(LinkDestinationSegment::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        LinkDestinationSegment::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(LinkDestinationSegment);
 
         failure_case!(should_reject_empty_segment, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -83,14 +63,14 @@ mod test {
         success_case!(
             should_work_with_a_bracketed_variant,
             "<bracketed>",
-            LinkDestinationSegment::Bracketed(BracketedLinkDestinationSegment::strict_parse(
+            parsed => LinkDestinationSegment::Bracketed(BracketedLinkDestinationSegment::new(
                 "<bracketed>"
             ))
         );
         success_case!(
             should_work_with_an_unbracketed_variant,
             "unbracketed",
-            LinkDestinationSegment::Unbracketed(UnbracketedLinkDestinationSegment::strict_parse(
+            parsed => LinkDestinationSegment::Unbracketed(UnbracketedLinkDestinationSegment::new(
                 "unbracketed"
             ))
         );

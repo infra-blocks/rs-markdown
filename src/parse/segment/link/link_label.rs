@@ -1,5 +1,5 @@
 use crate::parse::{
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
     utils::escaped_sequence,
 };
 use nom::{
@@ -27,8 +27,8 @@ Between these brackets there must be at least one character that is not a space,
 Unescaped square bracket characters are not allowed inside the opening and closing square brackets of link labels.
 A link label can have at most 999 characters inside the square brackets.
 */
-impl<'a> Parse<'a> for LinkLabelSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for LinkLabelSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -57,31 +57,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(LinkLabelSegment::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                success_case!($test, $segment, $segment, "");
-            };
-            ($test:ident, $segment:expr, $parsed:expr, $remaining:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        LinkLabelSegment::parse::<Error<&str>>($segment),
-                        Ok(($remaining, LinkLabelSegment::new($parsed)))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(LinkLabelSegment);
 
         failure_case!(should_reject_empty_segment, "");
         failure_case!(should_reject_blank_line, "\n");

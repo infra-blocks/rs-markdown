@@ -1,7 +1,7 @@
 mod equals;
 mod hyphens;
 
-use crate::parse::traits::{Parse, Segment};
+use crate::parse::traits::{NomParse, Segment};
 pub use equals::*;
 pub use hyphens::*;
 use nom::{IResult, Parser, branch::alt, error::ParseError};
@@ -33,14 +33,14 @@ impl<'a> From<SetextHeadingHyphensUnderlineSegment<'a>> for SetextHeadingUnderli
     }
 }
 
-impl<'a> Parse<'a> for SetextHeadingUnderlineSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for SetextHeadingUnderlineSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
         alt((
-            SetextHeadingEqualsUnderlineSegment::parse.map(Self::from),
-            SetextHeadingHyphensUnderlineSegment::parse.map(Self::from),
+            SetextHeadingEqualsUnderlineSegment::nom_parse.map(Self::from),
+            SetextHeadingHyphensUnderlineSegment::nom_parse.map(Self::from),
         ))
         .parse(input)
     }
@@ -61,29 +61,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::traits::StrictParse;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(SetextHeadingUnderlineSegment::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        SetextHeadingUnderlineSegment::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(SetextHeadingUnderlineSegment);
 
         failure_case!(should_reject_empty, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -91,15 +71,15 @@ mod test {
         success_case!(
             should_accept_equals,
             "=\n",
-            SetextHeadingUnderlineSegment::Equals(
-                SetextHeadingEqualsUnderlineSegment::strict_parse("=\n")
+            parsed => SetextHeadingUnderlineSegment::Equals(
+                SetextHeadingEqualsUnderlineSegment::new("=\n")
             )
         );
         success_case!(
             should_accept_hyphens,
             "-\n",
-            SetextHeadingUnderlineSegment::Hyphens(
-                SetextHeadingHyphensUnderlineSegment::strict_parse("-\n")
+            parsed => SetextHeadingUnderlineSegment::Hyphens(
+                SetextHeadingHyphensUnderlineSegment::new("-\n")
             )
         );
     }

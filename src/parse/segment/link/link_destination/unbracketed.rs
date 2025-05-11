@@ -1,5 +1,5 @@
 use crate::parse::{
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
     utils::{parentheseses_balance, take_one},
 };
 use nom::{
@@ -14,7 +14,7 @@ use nom::{
 pub struct UnbracketedLinkDestinationSegment<'a>(&'a str);
 
 impl<'a> UnbracketedLinkDestinationSegment<'a> {
-    fn new(segment: &'a str) -> Self {
+    pub(super) fn new(segment: &'a str) -> Self {
         Self(segment)
     }
 }
@@ -25,8 +25,8 @@ a nonempty sequence of characters that does not start with <, does not include A
 and includes parentheses only if (a) they are backslash-escaped or (b) they are part of a balanced pair of unescaped parentheses.
 (Implementations may impose limits on parentheses nesting to avoid performance issues, but at least three levels of nesting should be supported.)
 */
-impl<'a> Parse<'a> for UnbracketedLinkDestinationSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for UnbracketedLinkDestinationSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -54,33 +54,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(
-                        UnbracketedLinkDestinationSegment::parse::<Error<&str>>($segment).is_err()
-                    );
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                success_case!($test, $segment, $segment, "");
-            };
-            ($test:ident, $segment:expr, $parsed:expr, $remaining:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        UnbracketedLinkDestinationSegment::parse::<Error<&str>>($segment),
-                        Ok(($remaining, UnbracketedLinkDestinationSegment::new($parsed)))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(UnbracketedLinkDestinationSegment);
 
         failure_case!(should_reject_empty_string, "");
         failure_case!(should_reject_blank_line, "\n");

@@ -1,5 +1,5 @@
 use crate::parse::{
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
     utils::{does_not_contain_blank_line, escaped_sequence},
 };
 use nom::{
@@ -28,8 +28,8 @@ A link title consists of either:
 ...
 Although link titles may span multiple lines, they may not contain a blank line.
 */
-impl<'a> Parse<'a> for ParenthesesLinkTitleSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for ParenthesesLinkTitleSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -64,7 +64,9 @@ mod test {
             ($test:ident, $segment:expr) => {
                 #[test]
                 fn $test() {
-                    assert!(ParenthesesLinkTitleSegment::parse::<Error<&str>>($segment).is_err());
+                    assert!(
+                        ParenthesesLinkTitleSegment::nom_parse::<Error<&str>>($segment).is_err()
+                    );
                 }
             };
         }
@@ -77,7 +79,7 @@ mod test {
                 #[test]
                 fn $test() {
                     assert_eq!(
-                        ParenthesesLinkTitleSegment::parse::<Error<&str>>($segment),
+                        ParenthesesLinkTitleSegment::nom_parse::<Error<&str>>($segment),
                         Ok(($remaining, ParenthesesLinkTitleSegment::new($parsed)))
                     );
                 }

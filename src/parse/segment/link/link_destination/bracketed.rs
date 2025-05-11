@@ -1,5 +1,5 @@
 use crate::parse::{
-    traits::{Parse, Segment},
+    traits::{NomParse, Segment},
     utils::escaped_sequence,
 };
 use nom::{
@@ -11,13 +11,13 @@ use nom::{
 pub struct BracketedLinkDestinationSegment<'a>(&'a str);
 
 impl<'a> BracketedLinkDestinationSegment<'a> {
-    fn new(segment: &'a str) -> Self {
+    pub(super) fn new(segment: &'a str) -> Self {
         Self(segment)
     }
 }
 
-impl<'a> Parse<'a> for BracketedLinkDestinationSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for BracketedLinkDestinationSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -43,30 +43,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(
-                        BracketedLinkDestinationSegment::parse::<Error<&str>>($segment).is_err()
-                    );
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        BracketedLinkDestinationSegment::parse::<Error<&str>>($segment),
-                        Ok(("", BracketedLinkDestinationSegment::new($segment)))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(BracketedLinkDestinationSegment);
 
         failure_case!(should_reject_empty_segment, "");
         failure_case!(should_reject_newline, "\n");

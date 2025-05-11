@@ -1,3 +1,5 @@
+// TODO: mark all the segment and struct constructors as unsafe and make sure they are not public outside this module.
+
 pub(crate) mod parse;
 pub mod render;
 
