@@ -3,7 +3,8 @@ use nom::character::complete::space0;
 use nom::combinator::eof;
 use nom::{IResult, combinator::consumed, error::ParseError};
 
-use crate::parse::traits::{NomParse, Segment};
+use crate::parse::input::NomParse;
+use crate::parse::traits::Segment;
 use crate::parse::utils::{indented_by_less_than_4, line};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

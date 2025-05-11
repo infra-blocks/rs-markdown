@@ -1,7 +1,4 @@
-use crate::parse::{
-    segment::atx_heading::AtxHeadingSegment,
-    traits::{NomParse, Segment},
-};
+use crate::parse::{input::NomParse, segment::atx_heading::AtxHeadingSegment, traits::Segment};
 use nom::{Parser, error::ParseError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,6 +1,7 @@
 use super::blank_line::BlankLineSegment;
 use crate::parse::{
-    traits::{NomParse, Segment},
+    input::NomParse,
+    traits::Segment,
     utils::{indented_by_at_least_4, line, non_whitespace},
 };
 use nom::{
@@ -146,9 +147,8 @@ mod test {
 
     // Test that it can accept an indented code or a blank line.
     mod indented_code_or_blank_line_segment {
-        use crate::parse::{input::ParseWholeSegment, traits::ParseWhole};
-
         use super::*;
+        use crate::parse::input::strict_parse;
         use nom::error::Error;
 
         #[test]
@@ -163,9 +163,7 @@ mod test {
                 IndentedCodeOrBlankLineSegment::nom_parse::<Error<&str>>(segment),
                 Ok((
                     "",
-                    IndentedCodeOrBlankLineSegment::BlankLine(
-                        BlankLineSegment::parse_whole_segment(segment).unwrap()
-                    )
+                    IndentedCodeOrBlankLineSegment::BlankLine(strict_parse(segment))
                 ))
             )
         }
@@ -177,9 +175,7 @@ mod test {
                 IndentedCodeOrBlankLineSegment::nom_parse::<Error<&str>>(segment),
                 Ok((
                     "",
-                    IndentedCodeOrBlankLineSegment::IndentedCode(
-                        IndentedCodeSegment::parse_whole::<Error<&str>>(segment).unwrap()
-                    )
+                    IndentedCodeOrBlankLineSegment::IndentedCode(strict_parse(segment))
                 ))
             )
         }

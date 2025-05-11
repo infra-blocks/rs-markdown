@@ -1,6 +1,5 @@
 use crate::parse::{
-    segment::thematic_break::ThematicBreakSegment,
-    traits::{NomParse, Segment},
+    input::NomParse, segment::thematic_break::ThematicBreakSegment, traits::Segment,
 };
 use nom::{Parser, error::ParseError};
 

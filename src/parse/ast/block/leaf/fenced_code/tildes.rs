@@ -1,6 +1,7 @@
 use crate::parse::{
+    input::NomParse,
     segment::fenced_code::{TildesFencedCodeClosingSegment, TildesFencedCodeOpeningSegment},
-    traits::{NomParse, Segment, Segments},
+    traits::{Segment, Segments},
     utils::line,
 };
 use nom::{IResult, Parser, combinator::recognize, error::ParseError};
@@ -147,8 +148,6 @@ mod test {
     use super::*;
 
     mod content_segments {
-        use crate::parse::traits::StrictParse;
-
         use super::*;
 
         #[test]
@@ -174,8 +173,6 @@ mod test {
     }
 
     mod parse {
-        use crate::parse::traits::StrictParse;
-
         use super::*;
         use nom::error::Error;
 
@@ -242,8 +239,6 @@ mod test {
     }
 
     mod segments {
-        use crate::parse::traits::StrictParse;
-
         use super::*;
 
         #[test]

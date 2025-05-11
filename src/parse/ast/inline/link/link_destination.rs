@@ -1,7 +1,4 @@
-use crate::parse::{
-    segment::link::LinkDestinationSegment,
-    traits::{NomParse, Segment},
-};
+use crate::parse::{input::NomParse, segment::link::LinkDestinationSegment, traits::Segment};
 use nom::{IResult, Parser, error::ParseError};
 
 /// A link destination segment, as described in the [spec](https://spec.commonmark.org/0.31.2/#link-destination).

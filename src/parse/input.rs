@@ -1,6 +1,8 @@
-use super::traits::NomParse;
-use nom::error::Error;
-use std::usize;
+use nom::{
+    IResult,
+    error::{Error, ParseError},
+};
+use std::{str::Lines, usize};
 
 pub type ParseResult<I, T> = Result<(I, T), I>;
 
@@ -172,29 +174,64 @@ where
     fn parse(input: I) -> ParseResult<I, Self> {
         match T::nom_parse::<Error<&str>>(input.segment()) {
             Ok((remaining, parsed)) => {
-                let bytes_consumed = input.offset(remaining);
-                input.parsed(bytes(bytes_consumed), parsed)
+                let consumed = if remaining.is_empty() {
+                    segments(1)
+                } else {
+                    bytes(remaining.len() - input.segment().len())
+                };
+                input.parsed(consumed, parsed)
             }
             Err(_) => input.failed(),
         }
     }
 }
 
-pub trait ParseWholeSegment<S>
+pub trait ParseWhole<I>
 where
+    I: Input,
     Self: Sized,
 {
-    fn parse_whole_segment(segment: S) -> Option<Self>;
+    fn parse_whole(input: I) -> Option<Self>;
 }
 
-impl<'a, T> ParseWholeSegment<&'a str> for T
+impl<I, T> ParseWhole<I> for T
 where
-    T: NomParse<'a>,
+    I: Input,
+    T: Parse<I>,
 {
-    fn parse_whole_segment(segment: &'a str) -> Option<Self> {
-        match T::nom_parse::<Error<&str>>(segment) {
-            Ok((remaining, parsed)) if remaining.is_empty() => Some(parsed),
-            _ => None,
+    fn parse_whole(input: I) -> Option<Self> {
+        match Self::parse(input) {
+            Ok((remaining, parsed)) => {
+                if remaining.is_empty() {
+                    Some(parsed)
+                } else {
+                    None
+                }
+            }
+            Err(_) => None,
         }
     }
+}
+
+// TODO: this is mostly for testing purposes.
+pub fn strict_parse<'a, T, K>(input: K) -> T
+where
+    T: Sized + ParseWhole<LinesInput<'a>>,
+    K: Into<LinesInput<'a>>,
+{
+    let input = input.into();
+    match T::parse_whole(input) {
+        Some(parsed) => parsed,
+        None => panic!("remaning input"),
+    }
+}
+
+// TODO: remove?
+/// A trait formalizing the parsing interface for single segments types.
+///
+/// It is a thin wrapper around [nom]'s parsing semantics.
+pub trait NomParse<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+    where
+        Self: Sized;
 }

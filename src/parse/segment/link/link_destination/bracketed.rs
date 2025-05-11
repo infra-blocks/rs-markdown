@@ -1,7 +1,4 @@
-use crate::parse::{
-    traits::{NomParse, Segment},
-    utils::escaped_sequence,
-};
+use crate::parse::{input::NomParse, traits::Segment, utils::escaped_sequence};
 use nom::{
     IResult, Parser, branch::alt, bytes::complete::is_not, character::complete::char,
     combinator::recognize, error::ParseError, multi::many0,

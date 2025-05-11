@@ -1,7 +1,4 @@
-use crate::parse::{
-    segment::blank_line::BlankLineSegment,
-    traits::{NomParse, Segment},
-};
+use crate::parse::{input::NomParse, segment::blank_line::BlankLineSegment, traits::Segment};
 use nom::{Parser, error::ParseError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,9 +1,10 @@
 use crate::parse::{
+    input::NomParse,
     segment::{
         blank_line::BlankLineSegment,
         indented_code::{IndentedCodeOrBlankLineSegment, IndentedCodeSegment},
     },
-    traits::{NomParse, Segment, Segments},
+    traits::{Segment, Segments},
 };
 use nom::{
     IResult, Parser,
@@ -173,7 +174,6 @@ mod test {
     // Tests that it properly strips off trailing blank lines when present.
     mod parse {
         use super::*;
-        use crate::parse::{input::ParseWholeSegment, traits::ParseWhole};
         use nom::error::Error;
 
         macro_rules! failure_case {
@@ -280,7 +280,6 @@ But not this one.",
 
     mod segments {
         use super::*;
-        use crate::parse::traits::ParseWhole;
         use nom::error::Error;
         use std::vec;
 

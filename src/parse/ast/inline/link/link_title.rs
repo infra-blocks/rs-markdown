@@ -1,7 +1,4 @@
-use crate::parse::{
-    segment::link::LinkTitleSegment,
-    traits::{NomParse, Segment},
-};
+use crate::parse::{input::NomParse, segment::link::LinkTitleSegment, traits::Segment};
 use nom::{IResult, Parser, error::ParseError};
 
 /// A link title, as described in the [spec][https://spec.commonmark.org/0.31.2/#link-title].

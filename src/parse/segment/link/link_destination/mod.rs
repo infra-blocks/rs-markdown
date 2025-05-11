@@ -4,7 +4,7 @@ mod unbracketed;
 pub use bracketed::*;
 pub use unbracketed::*;
 
-use crate::parse::traits::{NomParse, Segment};
+use crate::parse::{input::NomParse, traits::Segment};
 use nom::{IResult, Parser, branch::alt, error::ParseError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

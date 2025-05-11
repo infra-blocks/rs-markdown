@@ -1,4 +1,7 @@
-use super::{input::ParseWholeSegment, segment::blank_line::BlankLineSegment};
+use super::{
+    input::{LinesInput, ParseWhole},
+    segment::blank_line::BlankLineSegment,
+};
 use nom::{
     IResult, Parser,
     branch::alt,
@@ -63,7 +66,7 @@ pub fn indented_by_less_than_4<'a, Error: ParseError<&'a str>>(
 ///
 /// It will inevitably return false if the input contains more than one line.
 pub fn is_blank_line(line: &str) -> bool {
-    BlankLineSegment::parse_whole_segment(line).is_some()
+    BlankLineSegment::parse_whole(LinesInput::from(line)).is_some()
 }
 
 /// Returns a predicate that returns whether the character received is the

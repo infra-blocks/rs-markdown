@@ -1,5 +1,6 @@
 use crate::parse::{
-    traits::{NomParse, Segment},
+    input::NomParse,
+    traits::Segment,
     utils::{does_not_contain_blank_line, escaped_sequence},
 };
 use nom::{

@@ -1,7 +1,4 @@
-use crate::parse::{
-    segment::link::LinkLabelSegment,
-    traits::{NomParse, Segment},
-};
+use crate::parse::{input::NomParse, segment::link::LinkLabelSegment, traits::Segment};
 use nom::{IResult, Parser, error::ParseError};
 
 /// A link label, as described in the [spec][https://spec.commonmark.org/0.31.2/#link-label].

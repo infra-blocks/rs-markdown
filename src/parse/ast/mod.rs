@@ -1,7 +1,7 @@
 pub mod block;
 pub mod inline;
 
-use super::traits::{NomParse, Segments};
+use super::{input::NomParse, traits::Segments};
 use block::{
     Block,
     leaf::{Leaf, link_reference_definition::LinkReferenceDefinition},

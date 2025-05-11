@@ -6,7 +6,7 @@ pub mod link_reference_definition;
 pub mod setext_heading;
 pub mod thematic_break;
 
-use crate::parse::traits::{NomParse, Segments};
+use crate::parse::{input::NomParse, traits::Segments};
 use atx_heading::AtxHeading;
 use blank_line::BlankLine;
 use fenced_code::FencedCode;

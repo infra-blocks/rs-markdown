@@ -1,6 +1,7 @@
 use crate::parse::{
+    input::NomParse,
     segment::fenced_code::{BackticksFencedCodeClosingSegment, BackticksFencedCodeOpeningSegment},
-    traits::{NomParse, Segment, Segments},
+    traits::{Segment, Segments},
     utils::line,
 };
 use nom::{IResult, Parser, combinator::recognize, error::ParseError};
@@ -147,36 +148,34 @@ mod test {
     use super::*;
 
     mod content_segments {
-        use crate::parse::traits::StrictParse;
-
         use super::*;
+        use crate::parse::input::strict_parse;
 
         #[test]
         fn should_work_without_content() {
-            let fenced_code = BackticksFencedCode::strict_parse("```\n");
+            let fenced_code: BackticksFencedCode = strict_parse("```\n");
             let content_segments: Vec<&str> = fenced_code.content_segments().collect();
             assert!(content_segments.is_empty());
         }
 
         #[test]
         fn should_work_without_closing_segment() {
-            let fenced_code = BackticksFencedCode::strict_parse("```\nabc\ndef");
+            let fenced_code: BackticksFencedCode = strict_parse("```\nabc\ndef");
             let content_segments: Vec<&str> = fenced_code.content_segments().collect();
             assert_eq!(content_segments, vec!["abc\n", "def"]);
         }
 
         #[test]
         fn should_work_with_a_full_block() {
-            let fenced_code = BackticksFencedCode::strict_parse("```\nabc\ndef\n```\n");
+            let fenced_code: BackticksFencedCode = strict_parse("```\nabc\ndef\n```\n");
             let content_segments: Vec<&str> = fenced_code.content_segments().collect();
             assert_eq!(content_segments, vec!["abc\n", "def\n"]);
         }
     }
 
     mod parse {
-        use crate::parse::traits::StrictParse;
-
         use super::*;
+        use crate::parse::input::strict_parse;
         use nom::error::Error;
 
         macro_rules! failure_case {
@@ -206,63 +205,54 @@ mod test {
         success_case!(
             should_work_with_missing_closing_segment,
             "```",
-            BackticksFencedCode::new(
-                BackticksFencedCodeOpeningSegment::strict_parse("```"),
-                vec![],
-                None
-            )
+            BackticksFencedCode::new(strict_parse("```"), vec![], None)
         );
         success_case!(
             should_work_without_content,
             "```\n```\n",
-            BackticksFencedCode::new(
-                BackticksFencedCodeOpeningSegment::strict_parse("```\n"),
-                vec![],
-                Some(BackticksFencedCodeClosingSegment::strict_parse("```\n"))
-            )
+            BackticksFencedCode::new(strict_parse("```\n"), vec![], Some(strict_parse("```\n")))
         );
         success_case!(
             should_work_with_content,
             "```\nabc\ndef\n```\n",
             BackticksFencedCode::new(
-                BackticksFencedCodeOpeningSegment::strict_parse("```\n"),
+                strict_parse("```\n"),
                 vec!["abc\n", "def\n"],
-                Some(BackticksFencedCodeClosingSegment::strict_parse("```\n"))
+                Some(strict_parse("```\n"))
             )
         );
         success_case!(
             smaller_closing_fences_should_be_treated_as_content,
             "````\nabc\ndef\n```\n````",
             BackticksFencedCode::new(
-                BackticksFencedCodeOpeningSegment::strict_parse("````\n"),
+                strict_parse("````\n"),
                 vec!["abc\n", "def\n", "```\n"],
-                Some(BackticksFencedCodeClosingSegment::strict_parse("````"))
+                Some(strict_parse("````"))
             )
         );
     }
 
     mod segments {
-        use crate::parse::traits::StrictParse;
-
         use super::*;
+        use crate::parse::input::strict_parse;
 
         #[test]
         fn should_work_with_single_opening_segment() {
-            let fenced_code = BackticksFencedCode::strict_parse("```\n");
+            let fenced_code: BackticksFencedCode = strict_parse("```\n");
             let segments: Vec<&str> = fenced_code.segments().collect();
             assert_eq!(segments, vec!["```\n"]);
         }
 
         #[test]
         fn should_work_with_content_segments() {
-            let fenced_code = BackticksFencedCode::strict_parse("```\nabc\ndef\nghi");
+            let fenced_code: BackticksFencedCode = strict_parse("```\nabc\ndef\nghi");
             let segments: Vec<&str> = fenced_code.segments().collect();
             assert_eq!(segments, vec!["```\n", "abc\n", "def\n", "ghi"]);
         }
 
         #[test]
         fn should_work_with_a_full_block() {
-            let fenced_code = BackticksFencedCode::strict_parse("```\nabc\ndef\n```\n");
+            let fenced_code: BackticksFencedCode = strict_parse("```\nabc\ndef\n```\n");
             let segments: Vec<&str> = fenced_code.segments().collect();
             assert_eq!(segments, vec!["```\n", "abc\n", "def\n", "```\n"]);
         }

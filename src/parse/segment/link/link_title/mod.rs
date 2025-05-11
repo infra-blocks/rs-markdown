@@ -2,7 +2,7 @@ mod double_quotes;
 mod parentheses;
 mod single_quotes;
 
-use crate::parse::traits::{NomParse, Segment};
+use crate::parse::{input::NomParse, traits::Segment};
 pub use double_quotes::*;
 use nom::{IResult, Parser, branch::alt, error::ParseError};
 pub use parentheses::*;
@@ -63,7 +63,7 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::traits::StrictParse;
+        use crate::parse::input::strict_parse;
         use nom::error::Error;
 
         macro_rules! failure_case {
@@ -93,17 +93,17 @@ mod test {
         success_case!(
             should_accept_single_quotes,
             "'hello'",
-            LinkTitleSegment::SingleQuotes(SingleQuotesLinkTitleSegment::strict_parse("'hello'"))
+            LinkTitleSegment::SingleQuotes(strict_parse("'hello'"))
         );
         success_case!(
             should_accept_double_quotes,
             "\"hello\"",
-            LinkTitleSegment::DoubleQuotes(DoubleQuotesLinkTitleSegment::strict_parse("\"hello\""))
+            LinkTitleSegment::DoubleQuotes(strict_parse("\"hello\""))
         );
         success_case!(
             should_accept_parentheses,
             "(hello)",
-            LinkTitleSegment::Parentheses(ParenthesesLinkTitleSegment::strict_parse("(hello)"))
+            LinkTitleSegment::Parentheses(strict_parse("(hello)"))
         );
     }
 }

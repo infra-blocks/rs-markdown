@@ -1,5 +1,6 @@
 use crate::parse::{
-    traits::{NomParse, Segment},
+    input::NomParse,
+    traits::Segment,
     utils::{indented_by_less_than_4, is_char, line},
 };
 use nom::{

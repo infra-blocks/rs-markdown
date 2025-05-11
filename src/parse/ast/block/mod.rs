@@ -3,7 +3,7 @@ pub mod leaf;
 
 use std::iter::FusedIterator;
 
-use crate::parse::traits::{NomParse, Segments};
+use crate::parse::{input::NomParse, traits::Segments};
 use leaf::Leaf;
 use nom::Parser;
 

@@ -3,11 +3,10 @@
 pub(crate) mod parse;
 pub mod render;
 
-use nom::error::Error;
 pub use parse::ast::Tree;
-use parse::traits::ParseWhole;
+use parse::input::strict_parse;
 pub use render::to_html::ToHtml;
 
 pub fn parse(input: &str) -> Tree {
-    Tree::parse_whole::<Error<&str>>(input).expect("unexpected error parsing markdown")
+    strict_parse(input)
 }

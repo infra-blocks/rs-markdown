@@ -1,5 +1,6 @@
 use crate::parse::{
-    traits::{NomParse, Segment},
+    input::NomParse,
+    traits::Segment,
     utils::{parentheseses_balance, take_one},
 };
 use nom::{

@@ -7,7 +7,7 @@ pub use tildes::*;
 use nom::{Parser, branch::alt, error::ParseError};
 use std::iter::FusedIterator;
 
-use crate::parse::traits::{NomParse, Segments};
+use crate::parse::{input::NomParse, traits::Segments};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FencedCode<'a> {
