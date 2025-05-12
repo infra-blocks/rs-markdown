@@ -24,29 +24,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::traits::StrictParse;
-        use nom::error::Error;
+        use crate::parse::{test_utils::test_parse_macros, traits::StrictParse};
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(LinkDestination::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        LinkDestination::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(LinkDestination);
 
         failure_case!(should_reject_empty_segment, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -54,12 +34,12 @@ mod test {
         success_case!(
             should_work_with_a_bracketed_variant,
             "<bracketed>",
-            LinkDestination::Bracketed(BracketedLinkDestination::strict_parse("<bracketed>"))
+            parsed => LinkDestination::Bracketed(BracketedLinkDestination::strict_parse("<bracketed>"))
         );
         success_case!(
             should_work_with_an_unbracketed_variant,
             "unbracketed",
-            LinkDestination::Unbracketed(UnbracketedLinkDestination::strict_parse("unbracketed"))
+            parsed => LinkDestination::Unbracketed(UnbracketedLinkDestination::strict_parse("unbracketed"))
         );
     }
 }

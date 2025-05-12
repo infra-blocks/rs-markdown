@@ -46,32 +46,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        // TODO: make a macro to generate those!
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(SingleQuotesLinkTitle::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                success_case!($test, $segment, $segment, "");
-            };
-            ($test:ident, $segment:expr, $parsed:expr, $remaining:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        SingleQuotesLinkTitle::parse::<Error<&str>>($segment),
-                        Ok(($remaining, SingleQuotesLinkTitle::new($parsed)))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(SingleQuotesLinkTitle);
 
         failure_case!(should_reject_empty_string, "");
         failure_case!(should_reject_blank_line, "\n");

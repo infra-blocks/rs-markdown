@@ -39,31 +39,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(UnbracketedLinkDestination::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                success_case!($test, $segment, $segment, "");
-            };
-            ($test:ident, $segment:expr, $parsed:expr, $remaining:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        UnbracketedLinkDestination::parse::<Error<&str>>($segment),
-                        Ok(($remaining, UnbracketedLinkDestination::new($parsed)))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(UnbracketedLinkDestination);
 
         failure_case!(should_reject_empty_string, "");
         failure_case!(should_reject_blank_line, "\n");

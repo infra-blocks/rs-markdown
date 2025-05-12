@@ -97,29 +97,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::ast::AtxHeading;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(AtxHeading::parse::<Error<&str>>($segment.clone()).is_err())
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        AtxHeading::parse::<Error<&str>>($segment.clone()),
-                        Ok(("", $expected))
-                    )
-                }
-            };
-        }
+        test_parse_macros!(AtxHeading);
 
         failure_case!(should_reject_empty_segment, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -139,82 +119,82 @@ mod test {
         success_case!(
             should_work_with_simple_case,
             "# Heading\n",
-            AtxHeading::new("# Heading\n", "Heading", 1)
+            parsed => AtxHeading::new("# Heading\n", "Heading", 1)
         );
         success_case!(
             should_work_with_2_hashes,
             "## Heading\n",
-            AtxHeading::new("## Heading\n", "Heading", 2)
+            parsed => AtxHeading::new("## Heading\n", "Heading", 2)
         );
         success_case!(
             should_work_with_3_hashes,
             "### Heading\n",
-            AtxHeading::new("### Heading\n", "Heading", 3)
+            parsed => AtxHeading::new("### Heading\n", "Heading", 3)
         );
         success_case!(
             should_work_with_4_hashes,
             "#### Heading\n",
-            AtxHeading::new("#### Heading\n", "Heading", 4)
+            parsed => AtxHeading::new("#### Heading\n", "Heading", 4)
         );
         success_case!(
             should_work_with_5_hashes,
             "##### Heading\n",
-            AtxHeading::new("##### Heading\n", "Heading", 5)
+            parsed => AtxHeading::new("##### Heading\n", "Heading", 5)
         );
         success_case!(
             should_work_with_6_hashes,
             "###### Heading\n",
-            AtxHeading::new("###### Heading\n", "Heading", 6)
+            parsed => AtxHeading::new("###### Heading\n", "Heading", 6)
         );
         success_case!(
             should_work_with_3_spaces_indent,
             "   # Heading\n",
-            AtxHeading::new("   # Heading\n", "Heading", 1)
+            parsed => AtxHeading::new("   # Heading\n", "Heading", 1)
         );
         success_case!(
             should_work_with_trailing_hashes,
             "# Heading ###  \t  \n",
-            AtxHeading::new("# Heading ###  \t  \n", "Heading", 1)
+            parsed => AtxHeading::new("# Heading ###  \t  \n", "Heading", 1)
         );
         success_case!(
             should_include_trailing_hash_in_content_if_missing_whitespace,
             "# Heading#\n",
-            AtxHeading::new("# Heading#\n", "Heading#", 1)
+            parsed => AtxHeading::new("# Heading#\n", "Heading#", 1)
         );
         success_case!(
             should_work_with_empty_heading_without_newline,
             "#",
-            AtxHeading::new("#", "", 1)
+            parsed => AtxHeading::new("#", "", 1)
         );
         success_case!(
             should_work_with_blank_heading,
             "#       \n",
-            AtxHeading::new("#       \n", "", 1)
+            parsed => AtxHeading::new("#       \n", "", 1)
         );
         success_case!(
             should_work_with_empty_heading_and_trailing_hashes,
             "## ###\n",
-            AtxHeading::new("## ###\n", "", 2)
+            parsed => AtxHeading::new("## ###\n", "", 2)
         );
         success_case!(
             should_work_with_hash_content,
             "# ### #\n",
-            AtxHeading::new("# ### #\n", "###", 1)
+            parsed => AtxHeading::new("# ### #\n", "###", 1)
         );
         success_case!(
             should_work_with_characters_after_what_appears_to_be_a_closing_sequence,
             "### foo ### b\n",
-            AtxHeading::new("### foo ### b\n", "foo ### b", 3)
+            parsed => AtxHeading::new("### foo ### b\n", "foo ### b", 3)
         );
         success_case!(
             should_work_with_escaped_hash_as_content,
             "# Heading #\\##\n",
-            AtxHeading::new("# Heading #\\##\n", "Heading #\\##", 1)
+            parsed => AtxHeading::new("# Heading #\\##\n", "Heading #\\##", 1)
         );
         success_case!(
             should_work_with_missing_eol,
             "# Heading",
-            AtxHeading::new("# Heading", "Heading", 1)
+            parsed => AtxHeading::new("# Heading", "Heading", 1)
         );
     }
 }

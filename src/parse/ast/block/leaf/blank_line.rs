@@ -21,28 +21,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(BlankLine::parse::<Error<&str>>($segment).is_err())
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        BlankLine::parse::<Error<&str>>($segment.clone()),
-                        Ok(("", BlankLine::new($segment)))
-                    )
-                }
-            };
-        }
+        test_parse_macros!(BlankLine);
 
         failure_case!(should_reject_empty, "");
         failure_case!(should_reject_line_with_a_char, "    a\n");

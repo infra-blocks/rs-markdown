@@ -54,31 +54,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(
-                        SetextHeadingEqualsUnderlineSegment::parse::<Error<&str>>($segment)
-                            .is_err()
-                    );
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        SetextHeadingEqualsUnderlineSegment::parse::<Error<&str>>($segment),
-                        Ok(("", SetextHeadingEqualsUnderlineSegment::new($segment)))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(SetextHeadingEqualsUnderlineSegment);
 
         failure_case!(should_fail_with_empty, "");
         failure_case!(should_fail_with_blank_line, "\n");
