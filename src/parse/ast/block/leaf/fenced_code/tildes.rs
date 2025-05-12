@@ -58,31 +58,10 @@ mod test {
     use super::*;
 
     mod parse {
-        use crate::parse::traits::StrictParse;
-
         use super::*;
-        use nom::error::Error;
+        use crate::parse::{test_utils::test_parse_macros, traits::StrictParse};
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(TildesFencedCode::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        TildesFencedCode::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(TildesFencedCode);
 
         failure_case!(should_fail_with_empty_string, "");
         failure_case!(should_fail_with_blank_line, "\n");
@@ -90,7 +69,7 @@ mod test {
         success_case!(
             should_work_with_missing_closing_segment,
             "~~~",
-            TildesFencedCode::new(
+            parsed => TildesFencedCode::new(
                 TildesFencedCodeOpeningSegment::strict_parse("~~~"),
                 vec![],
                 None
@@ -99,7 +78,7 @@ mod test {
         success_case!(
             should_work_without_content,
             "~~~\n~~~\n",
-            TildesFencedCode::new(
+            parsed => TildesFencedCode::new(
                 TildesFencedCodeOpeningSegment::strict_parse("~~~\n"),
                 vec![],
                 Some(TildesFencedCodeClosingSegment::strict_parse("~~~\n"))
@@ -108,7 +87,7 @@ mod test {
         success_case!(
             should_work_with_content,
             "~~~\nabc\ndef\n~~~\n",
-            TildesFencedCode::new(
+            parsed => TildesFencedCode::new(
                 TildesFencedCodeOpeningSegment::strict_parse("~~~\n"),
                 vec!["abc\n", "def\n"],
                 Some(TildesFencedCodeClosingSegment::strict_parse("~~~\n"))
@@ -117,7 +96,7 @@ mod test {
         success_case!(
             smaller_closing_fences_should_be_treated_as_content,
             "~~~~\nabc\ndef\n~~~\n~~~~",
-            TildesFencedCode::new(
+            parsed => TildesFencedCode::new(
                 TildesFencedCodeOpeningSegment::strict_parse("~~~~\n"),
                 vec!["abc\n", "def\n", "~~~\n"],
                 Some(TildesFencedCodeClosingSegment::strict_parse("~~~~"))

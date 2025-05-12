@@ -71,28 +71,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(ThematicBreak::parse::<Error<&str>>($segment.clone()).is_err())
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        ThematicBreak::parse::<Error<&str>>($segment.clone()),
-                        Ok(("", ThematicBreak::new($segment)))
-                    )
-                }
-            };
-        }
+        test_parse_macros!(ThematicBreak);
 
         failure_case!(should_reject_empty, "");
         failure_case!(should_reject_blank_line, "  \n");

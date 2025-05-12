@@ -98,30 +98,9 @@ mod test {
 
     mod opening {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(
-                        TildesFencedCodeOpeningSegment::parse::<Error<&str>>($segment).is_err(),
-                    );
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        TildesFencedCodeOpeningSegment::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(TildesFencedCodeOpeningSegment);
 
         failure_case!(should_reject_empy, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -132,42 +111,42 @@ mod test {
         success_case!(
             should_work_with_3_tildes,
             "~~~\n",
-            TildesFencedCodeOpeningSegment::new("~~~\n", 0, 3, "")
+            parsed => TildesFencedCodeOpeningSegment::new("~~~\n", 0, 3, "")
         );
         success_case!(
             should_work_without_trailing_newline,
             "~~~",
-            TildesFencedCodeOpeningSegment::new("~~~", 0, 3, "")
+            parsed => TildesFencedCodeOpeningSegment::new("~~~", 0, 3, "")
         );
         success_case!(
             should_work_with_3_tildes_and_3_whitespace_ident,
             "   ~~~\n",
-            TildesFencedCodeOpeningSegment::new("   ~~~\n", 3, 3, "")
+            parsed => TildesFencedCodeOpeningSegment::new("   ~~~\n", 3, 3, "")
         );
         success_case!(
             should_work_with_info_string,
             "~~~rust\n",
-            TildesFencedCodeOpeningSegment::new("~~~rust\n", 0, 3, "rust")
+            parsed => TildesFencedCodeOpeningSegment::new("~~~rust\n", 0, 3, "rust")
         );
         success_case!(
             should_work_with_info_string_without_trailing_newline,
             "~~~rust",
-            TildesFencedCodeOpeningSegment::new("~~~rust", 0, 3, "rust")
+            parsed => TildesFencedCodeOpeningSegment::new("~~~rust", 0, 3, "rust")
         );
         success_case!(
             should_work_tildes_in_info_string,
             "~~~rust~\n",
-            TildesFencedCodeOpeningSegment::new("~~~rust~\n", 0, 3, "rust~")
+            parsed => TildesFencedCodeOpeningSegment::new("~~~rust~\n", 0, 3, "rust~")
         );
         success_case!(
             should_work_backticks_in_info_string,
             "~~~rust`\n",
-            TildesFencedCodeOpeningSegment::new("~~~rust`\n", 0, 3, "rust`")
+            parsed => TildesFencedCodeOpeningSegment::new("~~~rust`\n", 0, 3, "rust`")
         );
         success_case!(
             should_work_with_padded_info_string,
             "~~~   rust is kind of fucking cool   \n",
-            TildesFencedCodeOpeningSegment::new(
+            parsed => TildesFencedCodeOpeningSegment::new(
                 "~~~   rust is kind of fucking cool   \n",
                 0,
                 3,
@@ -178,30 +157,9 @@ mod test {
 
     mod closing {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(
-                        TildesFencedCodeClosingSegment::parse::<Error<&str>>($segment).is_err(),
-                    );
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        TildesFencedCodeClosingSegment::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(TildesFencedCodeClosingSegment);
 
         failure_case!(should_reject_empy, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -213,27 +171,27 @@ mod test {
         success_case!(
             should_work_with_3_tildes,
             "~~~\n",
-            TildesFencedCodeClosingSegment::new("~~~\n", 0, 3)
+            parsed => TildesFencedCodeClosingSegment::new("~~~\n", 0, 3)
         );
         success_case!(
             should_work_without_trailing_newline,
             "~~~",
-            TildesFencedCodeClosingSegment::new("~~~", 0, 3)
+            parsed => TildesFencedCodeClosingSegment::new("~~~", 0, 3)
         );
         success_case!(
             should_work_with_4_tildes,
             "~~~~\n",
-            TildesFencedCodeClosingSegment::new("~~~~\n", 0, 4)
+            parsed => TildesFencedCodeClosingSegment::new("~~~~\n", 0, 4)
         );
         success_case!(
             should_work_with_trailing_whitespaces,
             "~~~   \t\n",
-            TildesFencedCodeClosingSegment::new("~~~   \t\n", 0, 3)
+            parsed => TildesFencedCodeClosingSegment::new("~~~   \t\n", 0, 3)
         );
         success_case!(
             should_work_with_3_whitespaces_indent,
             "   ~~~\n",
-            TildesFencedCodeClosingSegment::new("   ~~~\n", 3, 3)
+            parsed => TildesFencedCodeClosingSegment::new("   ~~~\n", 3, 3)
         );
     }
 }

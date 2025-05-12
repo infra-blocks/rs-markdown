@@ -61,29 +61,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::traits::StrictParse;
-        use nom::error::Error;
+        use crate::parse::{test_utils::test_parse_macros, traits::StrictParse};
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(SetextHeadingUnderlineSegment::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        SetextHeadingUnderlineSegment::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(SetextHeadingUnderlineSegment);
 
         failure_case!(should_reject_empty, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -91,14 +71,14 @@ mod test {
         success_case!(
             should_accept_equals,
             "=\n",
-            SetextHeadingUnderlineSegment::Equals(
+            parsed => SetextHeadingUnderlineSegment::Equals(
                 SetextHeadingEqualsUnderlineSegment::strict_parse("=\n")
             )
         );
         success_case!(
             should_accept_hyphens,
             "-\n",
-            SetextHeadingUnderlineSegment::Hyphens(
+            parsed => SetextHeadingUnderlineSegment::Hyphens(
                 SetextHeadingHyphensUnderlineSegment::strict_parse("-\n")
             )
         );

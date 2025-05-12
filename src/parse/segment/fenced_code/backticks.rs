@@ -92,30 +92,9 @@ mod test {
 
     mod opening {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(
-                        BackticksFencedCodeOpeningSegment::parse::<Error<&str>>($segment).is_err(),
-                    );
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        BackticksFencedCodeOpeningSegment::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(BackticksFencedCodeOpeningSegment);
 
         failure_case!(should_reject_empy, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -127,32 +106,32 @@ mod test {
         success_case!(
             should_work_with_3_backticks,
             "```\n",
-            BackticksFencedCodeOpeningSegment::new("```\n", 0, 3, "")
+            parsed => BackticksFencedCodeOpeningSegment::new("```\n", 0, 3, "")
         );
         success_case!(
             should_work_without_trailing_newline,
             "```",
-            BackticksFencedCodeOpeningSegment::new("```", 0, 3, "")
+            parsed => BackticksFencedCodeOpeningSegment::new("```", 0, 3, "")
         );
         success_case!(
             should_work_with_3_backticks_and_3_whitespace_ident,
             "   ```\n",
-            BackticksFencedCodeOpeningSegment::new("   ```\n", 3, 3, "")
+            parsed => BackticksFencedCodeOpeningSegment::new("   ```\n", 3, 3, "")
         );
         success_case!(
             should_work_with_info_string,
             "```rust\n",
-            BackticksFencedCodeOpeningSegment::new("```rust\n", 0, 3, "rust",)
+            parsed => BackticksFencedCodeOpeningSegment::new("```rust\n", 0, 3, "rust",)
         );
         success_case!(
             should_work_with_info_string_without_trailing_newline,
             "```rust",
-            BackticksFencedCodeOpeningSegment::new("```rust", 0, 3, "rust")
+            parsed => BackticksFencedCodeOpeningSegment::new("```rust", 0, 3, "rust")
         );
         success_case!(
             should_work_with_padded_info_string,
             "```   rust is kind of fucking cool   \n",
-            BackticksFencedCodeOpeningSegment::new(
+            parsed => BackticksFencedCodeOpeningSegment::new(
                 "```   rust is kind of fucking cool   \n",
                 0,
                 3,
@@ -191,31 +170,9 @@ mod test {
 
         mod parse {
             use super::*;
-            use nom::error::Error;
+            use crate::parse::test_utils::test_parse_macros;
 
-            macro_rules! failure_case {
-                ($test:ident, $segment:expr) => {
-                    #[test]
-                    fn $test() {
-                        assert!(
-                            BackticksFencedCodeClosingSegment::parse::<Error<&str>>($segment)
-                                .is_err(),
-                        );
-                    }
-                };
-            }
-
-            macro_rules! success_case {
-                ($test:ident, $segment:expr, $expected:expr) => {
-                    #[test]
-                    fn $test() {
-                        assert_eq!(
-                            BackticksFencedCodeClosingSegment::parse::<Error<&str>>($segment),
-                            Ok(("", $expected))
-                        );
-                    }
-                };
-            }
+            test_parse_macros!(BackticksFencedCodeClosingSegment);
 
             failure_case!(should_reject_empy, "");
             failure_case!(should_reject_blank_line, "\n");
@@ -227,27 +184,27 @@ mod test {
             success_case!(
                 should_work_with_3_backticks,
                 "```\n",
-                BackticksFencedCodeClosingSegment::new("```\n", 0, 3)
+                parsed => BackticksFencedCodeClosingSegment::new("```\n", 0, 3)
             );
             success_case!(
                 should_work_without_trailing_newline,
                 "```",
-                BackticksFencedCodeClosingSegment::new("```", 0, 3)
+                parsed => BackticksFencedCodeClosingSegment::new("```", 0, 3)
             );
             success_case!(
                 should_work_with_4_backticks,
                 "````\n",
-                BackticksFencedCodeClosingSegment::new("````\n", 0, 4)
+                parsed => BackticksFencedCodeClosingSegment::new("````\n", 0, 4)
             );
             success_case!(
                 should_work_with_trailing_whitespaces,
                 "```   \t\n",
-                BackticksFencedCodeClosingSegment::new("```   \t\n", 0, 3)
+                parsed => BackticksFencedCodeClosingSegment::new("```   \t\n", 0, 3)
             );
             success_case!(
                 should_work_with_3_whitespaces_indent,
                 "   ```\n",
-                BackticksFencedCodeClosingSegment::new("   ```\n", 3, 3)
+                parsed => BackticksFencedCodeClosingSegment::new("   ```\n", 3, 3)
             );
         }
     }

@@ -166,28 +166,9 @@ mod test {
 
     mod indented_code_segment {
         use super::*;
-        use nom::error::Error;
+        use crate::parse::test_utils::test_parse_macros;
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(IndentedCodeSegment::parse::<Error<&str>>($segment.clone()).is_err())
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        IndentedCodeSegment::parse::<Error<&str>>($segment.clone()),
-                        Ok(("", IndentedCodeSegment::new($segment)))
-                    )
-                }
-            };
-        }
+        test_parse_macros!(IndentedCodeSegment);
 
         failure_case!(should_reject_empty_segment, "");
         failure_case!(should_reject_blank_line, " \n");

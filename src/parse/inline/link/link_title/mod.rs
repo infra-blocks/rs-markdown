@@ -28,29 +28,9 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::traits::StrictParse;
-        use nom::error::Error;
+        use crate::parse::{test_utils::test_parse_macros, traits::StrictParse};
 
-        macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
-                #[test]
-                fn $test() {
-                    assert!(LinkTitle::parse::<Error<&str>>($segment).is_err());
-                }
-            };
-        }
-
-        macro_rules! success_case {
-            ($test:ident, $segment:expr, $expected:expr) => {
-                #[test]
-                fn $test() {
-                    assert_eq!(
-                        LinkTitle::parse::<Error<&str>>($segment),
-                        Ok(("", $expected))
-                    );
-                }
-            };
-        }
+        test_parse_macros!(LinkTitle);
 
         failure_case!(should_reject_empty_string, "");
         failure_case!(should_reject_blank_line, "\n");
@@ -58,17 +38,17 @@ mod test {
         success_case!(
             should_accept_single_quotes,
             "'hello'",
-            LinkTitle::SingleQuotes(SingleQuotesLinkTitle::strict_parse("'hello'"))
+            parsed => LinkTitle::SingleQuotes(SingleQuotesLinkTitle::strict_parse("'hello'"))
         );
         success_case!(
             should_accept_double_quotes,
             "\"hello\"",
-            LinkTitle::DoubleQuotes(DoubleQuotesLinkTitle::strict_parse("\"hello\""))
+            parsed => LinkTitle::DoubleQuotes(DoubleQuotesLinkTitle::strict_parse("\"hello\""))
         );
         success_case!(
             should_accept_parentheses,
             "(hello)",
-            LinkTitle::Parentheses(ParenthesesLinkTitle::strict_parse("(hello)"))
+            parsed => LinkTitle::Parentheses(ParenthesesLinkTitle::strict_parse("(hello)"))
         );
     }
 }
