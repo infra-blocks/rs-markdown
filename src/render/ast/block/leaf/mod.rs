@@ -5,7 +5,7 @@ mod indented_code;
 mod thematic_break;
 
 use crate::{
-    parse::ast::block::leaf::{Leaf, link_reference_definition::LinkReferenceDefinition},
+    ast::{Leaf, LinkReferenceDefinition},
     render::display_html::DisplayHtml,
 };
 

@@ -1,8 +1,6 @@
 use crate::{
-    parse::ast::block::leaf::{
-        blank_line::BlankLine, link_reference_definition::LinkReferenceDefinition,
-    },
-    render::display_html::DisplayHtml,
+    ast::{BlankLine, LinkReferenceDefinition},
+    render::DisplayHtml,
 };
 
 impl DisplayHtml for BlankLine<'_> {

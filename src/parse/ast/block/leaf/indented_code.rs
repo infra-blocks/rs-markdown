@@ -1,45 +1,11 @@
-use crate::parse::{
-    segment::{
-        blank_line::BlankLineSegment,
-        indented_code::{IndentedCodeOrBlankLineSegment, IndentedCodeSegment},
+use crate::{
+    ast::IndentedCode,
+    parse::{
+        segment::indented_code::{ContinuationSegments, IndentedCodeSegment},
+        traits::Parse,
     },
-    traits::{Parse, Segment, Segments},
 };
-use nom::{
-    IResult, Parser,
-    error::ParseError,
-    multi::{many0, many1},
-};
-use std::iter::{self, FusedIterator};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct IndentedCode<'a> {
-    opening_segment: IndentedCodeSegment<'a>,
-    continuation_segments: Option<ContinuationSegments<'a>>,
-}
-
-impl<'a> IndentedCode<'a> {
-    fn new(
-        opening_segment: IndentedCodeSegment<'a>,
-        continuation_segments: Option<ContinuationSegments<'a>>,
-    ) -> Self {
-        Self {
-            opening_segment,
-            continuation_segments,
-        }
-    }
-
-    fn single_segment(opening_segment: IndentedCodeSegment<'a>) -> Self {
-        Self::new(opening_segment, None)
-    }
-
-    fn multi_segments(
-        opening_segment: IndentedCodeSegment<'a>,
-        continuation_segments: ContinuationSegments<'a>,
-    ) -> Self {
-        Self::new(opening_segment, Some(continuation_segments))
-    }
-}
+use nom::{IResult, error::ParseError};
 
 impl<'a> Parse<'a> for IndentedCode<'a> {
     fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
@@ -59,110 +25,6 @@ impl<'a> Parse<'a> for IndentedCode<'a> {
     }
 }
 
-impl<'a> Segments<'a> for IndentedCode<'a> {
-    type SegmentsIter = IndentedCodeSegmentsIterator<'a>;
-
-    fn segments(&'a self) -> Self::SegmentsIter {
-        IndentedCodeSegmentsIterator::from(self)
-    }
-}
-
-pub struct IndentedCodeSegmentsIterator<'a> {
-    opening_segment: Option<&'a str>,
-    continuation_segments: Box<dyn Iterator<Item = &'a str> + 'a>,
-    closing_segment: Option<&'a str>,
-}
-
-impl<'a> IndentedCodeSegmentsIterator<'a> {
-    fn new(
-        opening_segment: &'a str,
-        continuation_segments: Box<dyn Iterator<Item = &'a str> + 'a>,
-        closing_segment: Option<&'a str>,
-    ) -> Self {
-        Self {
-            opening_segment: Some(opening_segment),
-            continuation_segments,
-            closing_segment,
-        }
-    }
-}
-
-impl<'a> From<&'a IndentedCode<'a>> for IndentedCodeSegmentsIterator<'a> {
-    fn from(indented_code: &'a IndentedCode<'a>) -> Self {
-        let opening_segment = indented_code.opening_segment.segment();
-        match &indented_code.continuation_segments {
-            None => Self::new(opening_segment, Box::new(iter::empty()), None),
-            Some(continuation_segments) => {
-                let closing_segment = continuation_segments.closing_segment.segment();
-                let continuation_segments = continuation_segments
-                    .segments
-                    .iter()
-                    .map(|segment| segment.segment());
-                Self::new(
-                    opening_segment,
-                    Box::new(continuation_segments),
-                    Some(closing_segment),
-                )
-            }
-        }
-    }
-}
-
-impl FusedIterator for IndentedCodeSegmentsIterator<'_> {}
-
-impl<'a> Iterator for IndentedCodeSegmentsIterator<'a> {
-    type Item = &'a str;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(segment) = self.opening_segment.take() {
-            return Some(segment);
-        }
-        if let Some(segment) = self.continuation_segments.next() {
-            return Some(segment);
-        }
-        self.closing_segment.take()
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ContinuationSegments<'a> {
-    pub segments: Vec<IndentedCodeOrBlankLineSegment<'a>>,
-    pub closing_segment: IndentedCodeSegment<'a>,
-}
-
-impl<'a> ContinuationSegments<'a> {
-    fn new(
-        segments: Vec<IndentedCodeOrBlankLineSegment<'a>>,
-        closing_segment: IndentedCodeSegment<'a>,
-    ) -> Self {
-        Self {
-            segments,
-            closing_segment,
-        }
-    }
-}
-
-impl<'a> Parse<'a> for ContinuationSegments<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        let (remaining, blocks) =
-            many1((many0(BlankLineSegment::parse), IndentedCodeSegment::parse)).parse(input)?;
-
-        let mut segments = Vec::new();
-        for (blank_lines, indented_code_segment) in blocks {
-            segments.extend(
-                blank_lines
-                    .into_iter()
-                    .map(IndentedCodeOrBlankLineSegment::from),
-            );
-            segments.push(IndentedCodeOrBlankLineSegment::from(indented_code_segment));
-        }
-        // The last segment is guaranteed to be an indented code segment given our algorithm.
-        let closing_segment = segments.pop().unwrap().unwrap_indented_code();
-        let continuation_segments = ContinuationSegments::new(segments, closing_segment);
-        Ok((remaining, continuation_segments))
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -170,7 +32,10 @@ mod test {
     // Tests that it properly strips off trailing blank lines when present.
     mod parse {
         use super::*;
-        use crate::parse::traits::ParseWhole;
+        use crate::{
+            ast::BlankLine,
+            parse::{segment::indented_code::IndentedCodeOrBlankLineSegment, traits::ParseWhole},
+        };
         use nom::error::Error;
 
         macro_rules! failure_case {
@@ -255,7 +120,7 @@ But not this one.",
                 ContinuationSegments::new(
                     vec![
                         IndentedCodeOrBlankLineSegment::from(
-                            BlankLineSegment::parse_whole::<Error<&str>>(" \n").unwrap()
+                            BlankLine::parse_whole::<Error<&str>>(" \n").unwrap()
                         ),
                         IndentedCodeOrBlankLineSegment::from(
                             IndentedCodeSegment::parse_whole::<Error<&str>>(
@@ -264,7 +129,7 @@ But not this one.",
                             .unwrap()
                         ),
                         IndentedCodeOrBlankLineSegment::from(
-                            BlankLineSegment::parse_whole::<Error<&str>>(" \n").unwrap()
+                            BlankLine::parse_whole::<Error<&str>>(" \n").unwrap()
                         )
                     ],
                     IndentedCodeSegment::parse_whole::<Error<&str>>("    And so was that one.\n")
@@ -277,7 +142,7 @@ But not this one.",
 
     mod segments {
         use super::*;
-        use crate::parse::traits::ParseWhole;
+        use crate::{Segments, parse::traits::ParseWhole};
         use nom::error::Error;
         use std::vec;
 

@@ -3,7 +3,8 @@ use nom::character::complete::space0;
 use nom::combinator::eof;
 use nom::{IResult, combinator::consumed, error::ParseError};
 
-use crate::parse::traits::{Parse, Segment};
+use crate::Segment;
+use crate::parse::traits::Parse;
 use crate::parse::utils::{indented_by_less_than_4, line};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,18 +17,6 @@ pub struct BackticksFencedCodeOpeningSegment<'a> {
 }
 
 impl<'a> BackticksFencedCodeOpeningSegment<'a> {
-    pub fn indent(&self) -> usize {
-        self.indent
-    }
-
-    pub fn fence_length(&self) -> usize {
-        self.fence_length
-    }
-
-    pub fn info_string(&self) -> &'a str {
-        self.info_string
-    }
-
     fn new(segment: &'a str, indent: usize, fence_length: usize, info_string: &'a str) -> Self {
         Self {
             segment,
@@ -72,14 +61,6 @@ impl<'a> BackticksFencedCodeClosingSegment<'a> {
     /// This is only true if the closing segment's fence is at least as long as the opening segment's fence.
     pub fn closes(&self, opening: &BackticksFencedCodeOpeningSegment) -> bool {
         self.fence_length >= opening.fence_length
-    }
-
-    pub fn indent(&self) -> usize {
-        self.indent
-    }
-
-    pub fn fence_length(&self) -> usize {
-        self.fence_length
     }
 
     fn new(segment: &'a str, indent: usize, fence_length: usize) -> Self {

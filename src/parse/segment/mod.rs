@@ -1,7 +1,4 @@
-pub mod atx_heading;
-pub mod blank_line;
+// TODO: flatten these modules.
 pub mod fenced_code;
 pub mod indented_code;
-pub mod link;
 pub mod setext_heading;
-pub mod thematic_break;

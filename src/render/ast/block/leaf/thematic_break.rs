@@ -1,9 +1,7 @@
 use super::DisplayHtml;
-use crate::parse::{
-    ast::block::leaf::{
-        link_reference_definition::LinkReferenceDefinition, thematic_break::ThematicBreak,
-    },
-    traits::Segment,
+use crate::{
+    Segment,
+    ast::{LinkReferenceDefinition, ThematicBreak},
 };
 
 impl DisplayHtml for ThematicBreak<'_> {

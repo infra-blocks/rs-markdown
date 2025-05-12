@@ -1,7 +1,7 @@
 mod equals;
 mod hyphens;
 
-use crate::parse::traits::{Parse, Segment};
+use crate::{Segment, parse::traits::Parse};
 pub use equals::*;
 pub use hyphens::*;
 use nom::{IResult, Parser, branch::alt, error::ParseError};

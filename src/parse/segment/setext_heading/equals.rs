@@ -1,6 +1,9 @@
-use crate::parse::{
-    traits::{Parse, Segment},
-    utils::{indented_by_less_than_4, is_char, line},
+use crate::{
+    Segment,
+    parse::{
+        traits::Parse,
+        utils::{indented_by_less_than_4, is_char, line},
+    },
 };
 use nom::{
     IResult, Parser,
