@@ -1,17 +1,13 @@
-use crate::api::Segment;
+use crate::parse::segment::link_title::DoubleQuotesLinkTitleSegments;
 
 /// The double quotes variant of a link title.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DoubleQuotesLinkTitle<'a>(&'a str);
+pub struct DoubleQuotesLinkTitle<'a>(DoubleQuotesLinkTitleSegments<'a>);
 
 impl<'a> DoubleQuotesLinkTitle<'a> {
-    pub(crate) fn new(segment: &'a str) -> Self {
+    pub(crate) fn new(segment: DoubleQuotesLinkTitleSegments<'a>) -> Self {
         Self(segment)
     }
 }
 
-impl<'a> Segment<'a> for DoubleQuotesLinkTitle<'a> {
-    fn segment(&self) -> &'a str {
-        self.0
-    }
-}
+// TODO: implement segments

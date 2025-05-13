@@ -1,17 +1,13 @@
-use crate::api::Segment;
+use crate::parse::segment::link_title::SingleQuotesLinkTitleSegments;
 
 /// The single quotes variant of a link title.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SingleQuotesLinkTitle<'a>(&'a str);
+pub struct SingleQuotesLinkTitle<'a>(SingleQuotesLinkTitleSegments<'a>);
 
 impl<'a> SingleQuotesLinkTitle<'a> {
-    pub(crate) fn new(segment: &'a str) -> Self {
+    pub(crate) fn new(segment: SingleQuotesLinkTitleSegments<'a>) -> Self {
         Self(segment)
     }
 }
 
-impl<'a> Segment<'a> for SingleQuotesLinkTitle<'a> {
-    fn segment(&self) -> &'a str {
-        self.0
-    }
-}
+// TODO: implement segments

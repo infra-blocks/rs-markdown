@@ -33,12 +33,4 @@ impl<'a> From<ParenthesesLinkTitle<'a>> for LinkTitle<'a> {
     }
 }
 
-impl<'a> Segment<'a> for LinkTitle<'a> {
-    fn segment(&self) -> &'a str {
-        match self {
-            Self::DoubleQuotes(segment) => segment.segment(),
-            Self::Parentheses(segment) => segment.segment(),
-            Self::SingleQuotes(segment) => segment.segment(),
-        }
-    }
-}
+// TODO: implement segments

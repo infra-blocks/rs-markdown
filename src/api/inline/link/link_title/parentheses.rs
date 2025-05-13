@@ -1,17 +1,13 @@
-use crate::api::Segment;
+use crate::parse::segment::link_title::ParenthesesLinkTitleSegments;
 
 /// The parentheses variant of a link title.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParenthesesLinkTitle<'a>(&'a str);
+pub struct ParenthesesLinkTitle<'a>(ParenthesesLinkTitleSegments<'a>);
 
 impl<'a> ParenthesesLinkTitle<'a> {
-    pub(crate) fn new(segment: &'a str) -> Self {
+    pub(crate) fn new(segment: ParenthesesLinkTitleSegments<'a>) -> Self {
         Self(segment)
     }
 }
 
-impl<'a> Segment<'a> for ParenthesesLinkTitle<'a> {
-    fn segment(&self) -> &'a str {
-        self.0
-    }
-}
+// TODO: implement segments
