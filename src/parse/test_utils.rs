@@ -6,7 +6,8 @@ macro_rules! test_parse_macros {
                 fn $test() {
                     use crate::parse::traits::Parse;
 
-                    assert!(<$type>::parse::<nom::error::Error<&str>>($segment).is_err());
+                    let result = <$type>::parse::<nom::error::Error<&str>>($segment);
+                    assert!(result.is_err(), "{:?}", result);
                 }
             };
         }

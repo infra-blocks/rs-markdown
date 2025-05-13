@@ -13,18 +13,6 @@ use nom::{
     sequence::terminated,
 };
 
-// TODO: tests.
-/// Iterates through the lines of the segment and returns whether any of them
-/// is a blank line (using [is_blank_line]).
-pub fn does_not_contain_blank_line(segment: &str) -> bool {
-    for line in segment.split_inclusive('\n') {
-        if is_blank_line(line) {
-            return false;
-        }
-    }
-    true
-}
-
 /// Parses any escaped character sequence.
 ///
 /// An escaped character sequence is a backslash character followed by any other character.
@@ -135,45 +123,6 @@ where
 mod test {
     use super::*;
     use nom::error::Error;
-
-    mod does_not_contain_blank_line {
-        use super::*;
-
-        #[test]
-        fn should_return_false_for_a_space() {
-            assert!(!does_not_contain_blank_line(" "));
-        }
-
-        #[test]
-        fn should_return_false_for_a_tab() {
-            assert!(!does_not_contain_blank_line("\t"));
-        }
-
-        #[test]
-        fn should_return_false_for_an_empty_line() {
-            assert!(!does_not_contain_blank_line("\n"));
-        }
-
-        #[test]
-        fn should_return_false_for_a_multiline_string_with_a_blank_line() {
-            assert!(!does_not_contain_blank_line("abc\n\nstuff"));
-        }
-
-        #[test]
-        fn should_return_true_for_empty_string() {
-            assert!(does_not_contain_blank_line(""));
-        }
-
-        #[test]
-        fn should_return_true_for_a_string_with_one_non_whitespace_character() {
-            assert!(does_not_contain_blank_line(" \ta\n"));
-        }
-
-        #[test]
-        fn should_return_true_for_a_multiline_string_without_blank_lines() {
-            assert!(does_not_contain_blank_line("abc\nstuff\nmore stuff"));
-        }
-    }
 
     mod escaped_sequence {
         use super::*;
