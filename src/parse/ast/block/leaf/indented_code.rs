@@ -1,22 +1,22 @@
 use crate::{
     ast::IndentedCode,
     parse::{
+        input::{Input, ParseResult},
         segment::indented_code::{ContinuationSegments, IndentedCodeSegment},
         traits::Parse,
     },
 };
-use nom::{IResult, error::ParseError};
 
-impl<'a> Parse<'a> for IndentedCode<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        let (remaining, opening_segment) = IndentedCodeSegment::parse::<Error>(input)?;
-        match ContinuationSegments::parse::<Error>(remaining) {
+impl<'a> Parse<&'a str> for IndentedCode<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        let (remaining, opening_segment) = IndentedCodeSegment::parse(input)?;
+        match ContinuationSegments::parse(remaining) {
             Ok((remaining, continuation_segments)) => {
                 let indented_code =
                     IndentedCode::multi_segments(opening_segment, continuation_segments);
                 Ok((remaining, indented_code))
             }
-            Err(_) => {
+            Err(remaining) => {
                 // If there are no continuation segments, we just return the opening segment.
                 let indented_code = IndentedCode::single_segment(opening_segment);
                 Ok((remaining, indented_code))
@@ -36,10 +36,9 @@ mod test {
             ast::BlankLine,
             parse::{
                 segment::indented_code::IndentedCodeOrBlankLineSegment,
-                test_utils::test_parse_macros, traits::ParseWhole,
+                test_utils::test_parse_macros, traits::StrictParse,
             },
         };
-        use nom::error::Error;
 
         test_parse_macros!(IndentedCode);
 
@@ -54,8 +53,7 @@ mod test {
             should_work_with_one_indented_code_segment,
             "    This is indented code\nThis is not.",
             parsed => IndentedCode::single_segment(
-                IndentedCodeSegment::parse_whole::<Error<&str>>("    This is indented code\n")
-                    .unwrap()
+                IndentedCodeSegment::strict_parse("    This is indented code\n")
             ),
             "This is not."
         );
@@ -63,8 +61,7 @@ mod test {
             should_work_with_tab_indent,
             "\tThis is indented code\nThis is not.",
             parsed => IndentedCode::single_segment(
-                IndentedCodeSegment::parse_whole::<Error<&str>>("\tThis is indented code\n")
-                    .unwrap()
+                IndentedCodeSegment::strict_parse("\tThis is indented code\n")
             ),
             "This is not."
         );
@@ -72,8 +69,7 @@ mod test {
             should_work_with_several_indentations,
             "  \t  \tThis is indented code\nThis is not.",
             parsed => IndentedCode::single_segment(
-                IndentedCodeSegment::parse_whole::<Error<&str>>("  \t  \tThis is indented code\n")
-                    .unwrap()
+                IndentedCodeSegment::strict_parse("  \t  \tThis is indented code\n")
             ),
             "This is not."
         );
@@ -81,8 +77,7 @@ mod test {
             should_strip_off_trailing_blank_line,
             "    This is indented code\n \n",
             parsed => IndentedCode::single_segment(
-                IndentedCodeSegment::parse_whole::<Error<&str>>("    This is indented code\n")
-                    .unwrap()
+                IndentedCodeSegment::strict_parse("    This is indented code\n")
             ),
             " \n"
         );
@@ -96,25 +91,22 @@ mod test {
  
 But not this one.",
             parsed => IndentedCode::multi_segments(
-                IndentedCodeSegment::parse_whole::<Error<&str>>("    This is indented code.\n")
-                    .unwrap(),
+                IndentedCodeSegment::strict_parse("    This is indented code.\n"),
                 ContinuationSegments::new(
                     vec![
                         IndentedCodeOrBlankLineSegment::from(
-                            BlankLine::parse_whole::<Error<&str>>(" \n").unwrap()
+                            BlankLine::strict_parse(" \n")
                         ),
                         IndentedCodeOrBlankLineSegment::from(
-                            IndentedCodeSegment::parse_whole::<Error<&str>>(
+                            IndentedCodeSegment::strict_parse(
                                 "    That blank line is part of the block too.\n"
                             )
-                            .unwrap()
                         ),
                         IndentedCodeOrBlankLineSegment::from(
-                            BlankLine::parse_whole::<Error<&str>>(" \n").unwrap()
+                            BlankLine::strict_parse(" \n")
                         )
                     ],
-                    IndentedCodeSegment::parse_whole::<Error<&str>>("    And so was that one.\n")
-                        .unwrap(),
+                    IndentedCodeSegment::strict_parse("    And so was that one.\n")
                 )
             ),
             " \nBut not this one."

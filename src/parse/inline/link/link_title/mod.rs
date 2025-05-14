@@ -4,19 +4,19 @@ mod single_quotes;
 
 use crate::{
     inline::link::{DoubleQuotesLinkTitle, LinkTitle, ParenthesesLinkTitle, SingleQuotesLinkTitle},
-    parse::traits::Parse,
+    parse::{
+        input::{Input, ParseResult},
+        parser::{Map, Parser, one_of},
+        traits::Parse,
+    },
 };
-use nom::{IResult, Parser, branch::alt, error::ParseError};
 
-impl<'a> Parse<'a> for LinkTitle<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        alt((
-            SingleQuotesLinkTitle::parse.map(Self::from),
-            DoubleQuotesLinkTitle::parse.map(Self::from),
-            ParenthesesLinkTitle::parse.map(Self::from),
+impl<'a> Parse<&'a str> for LinkTitle<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        one_of((
+            SingleQuotesLinkTitle::parse.map(Self::SingleQuotes),
+            DoubleQuotesLinkTitle::parse.map(Self::DoubleQuotes),
+            ParenthesesLinkTitle::parse.map(Self::Parentheses),
         ))
         .parse(input)
     }

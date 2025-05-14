@@ -1,34 +1,34 @@
 macro_rules! test_parse_macros {
     ($type:ty) => {
         macro_rules! failure_case {
-            ($test:ident, $segment:expr) => {
+            ($test:ident, $input:expr) => {
                 #[test]
                 fn $test() {
                     use crate::parse::traits::Parse;
 
-                    let result = <$type>::parse::<nom::error::Error<&str>>($segment);
+                    let result = <$type>::parse($input);
                     assert!(result.is_err(), "{:?}", result);
                 }
             };
         }
 
         macro_rules! success_case {
-                    ($test:ident, $segment:expr) => {
-                        success_case!($test, $segment, $segment, "");
+                    ($test:ident, $input:expr) => {
+                        success_case!($test, $input, $input, "");
                     };
-                    ($test:ident, $segment:expr, parsed => $parsed:expr) => {
-                        success_case!($test, $segment, parsed => $parsed, "");
+                    ($test:ident, $input:expr, parsed => $parsed:expr) => {
+                        success_case!($test, $input, parsed => $parsed, "");
                     };
-                    ($test:ident, $segment:expr, $parsed:expr, $remaining:expr) => {
-                        success_case!($test, $segment, parsed => <$type>::new($parsed), $remaining);
+                    ($test:ident, $input:expr, $parsed:expr, $remaining:expr) => {
+                        success_case!($test, $input, parsed => <$type>::new($parsed), $remaining);
                     };
-                    ($test:ident, $segment:expr, parsed => $parsed:expr, $remaining:expr) => {
+                    ($test:ident, $input:expr, parsed => $parsed:expr, $remaining:expr) => {
                         #[test]
                         fn $test() {
                             use crate::parse::traits::Parse;
 
                             assert_eq!(
-                                <$type>::parse::<nom::error::Error<&str>>($segment),
+                                <$type>::parse($input),
                                 Ok(($remaining, $parsed))
                             );
                         }

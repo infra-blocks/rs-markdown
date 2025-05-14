@@ -4,7 +4,7 @@ use nom::combinator::eof;
 use nom::{IResult, combinator::consumed, error::ParseError};
 
 use crate::Segment;
-use crate::parse::traits::Parse;
+use crate::parse::traits::NomParse;
 use crate::parse::utils::{indented_by_less_than_4, line};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -27,8 +27,8 @@ impl<'a> BackticksFencedCodeOpeningSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for BackticksFencedCodeOpeningSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for BackticksFencedCodeOpeningSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(line.and_then((
             indented_by_less_than_4,
             utils::backticks_fence,
@@ -72,8 +72,8 @@ impl<'a> BackticksFencedCodeClosingSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for BackticksFencedCodeClosingSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for BackticksFencedCodeClosingSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(line.and_then((indented_by_less_than_4, utils::backticks_fence, space0, eof)))
             .map(|(segment, (indent, fence, _, _))| Self::new(segment, indent.len(), fence.len()))
             .parse(input)

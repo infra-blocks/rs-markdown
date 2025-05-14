@@ -4,9 +4,8 @@ pub mod render;
 
 use api::ast::Tree;
 pub use api::*;
-use nom::error::Error;
-use parse::traits::ParseWhole;
+use parse::traits::StrictParse;
 
 pub fn parse(input: &str) -> Tree {
-    Tree::parse_whole::<Error<&str>>(input).expect("unexpected error parsing markdown")
+    Tree::strict_parse(input)
 }

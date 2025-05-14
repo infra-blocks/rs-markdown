@@ -104,26 +104,23 @@ mod test {
 
     mod segments {
         use super::*;
-        use crate::parse::traits::ParseWhole;
-        use nom::error::Error;
+        use crate::parse::traits::StrictParse;
         use std::vec;
 
         #[test]
         fn should_work_with_single_segment() {
-            let indented_code =
-                IndentedCode::parse_whole::<Error<&str>>("    This is indented code\n").unwrap();
+            let indented_code = IndentedCode::strict_parse("    This is indented code\n");
             let segments = indented_code.segments().collect::<Vec<_>>();
             assert_eq!(segments, vec!["    This is indented code\n"]);
         }
 
         #[test]
         fn should_work_with_multiple_segments() {
-            let indented_code = IndentedCode::parse_whole::<Error<&str>>(
+            let indented_code = IndentedCode::strict_parse(
                 r"    This is indented code
 
     This is the closing segment.",
-            )
-            .unwrap();
+            );
             let segments = indented_code.segments().collect::<Vec<_>>();
             assert_eq!(
                 segments,

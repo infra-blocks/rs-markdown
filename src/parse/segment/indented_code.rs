@@ -3,16 +3,17 @@ use crate::{
     Segment,
     ast::BlankLine,
     parse::{
-        traits::Parse,
+        input::{Input, ParseResult},
+        parser::{And, OneToMany, Parser, ZeroToMany},
+        traits::{NomParse, Parse},
         utils::{indented_by_at_least_4, line, non_whitespace},
     },
 };
 use nom::{
-    IResult, Parser,
+    IResult, Parser as _,
     branch::alt,
     combinator::{recognize, rest},
     error::ParseError,
-    multi::{many0, many1},
 };
 
 /// An indented code segment.
@@ -34,8 +35,8 @@ impl<'a> IndentedCodeSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for IndentedCodeSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for IndentedCodeSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         recognize(line.and_then(Self::indented_code))
             .map(Self::new)
             .parse(input)
@@ -102,11 +103,11 @@ impl<'a> From<BlankLine<'a>> for IndentedCodeOrBlankLineSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for IndentedCodeOrBlankLineSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for IndentedCodeOrBlankLineSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         alt((
-            IndentedCodeSegment::parse.map(Self::from),
-            BlankLine::parse.map(Self::from),
+            IndentedCodeSegment::nom_parse.map(Self::from),
+            BlankLine::nom_parse.map(Self::from),
         ))
         .parse(input)
     }
@@ -139,10 +140,13 @@ impl<'a> ContinuationSegments<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ContinuationSegments<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        let (remaining, blocks) =
-            many1((many0(BlankLine::parse), IndentedCodeSegment::parse)).parse(input)?;
+impl<'a> Parse<&'a str> for ContinuationSegments<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        let (remaining, blocks) = BlankLine::parse
+            .zero_to_many()
+            .and(IndentedCodeSegment::parse)
+            .one_to_many()
+            .parse(input)?;
 
         let mut segments = Vec::new();
         for (blank_lines, indented_code_segment) in blocks {
@@ -159,6 +163,28 @@ impl<'a> Parse<'a> for ContinuationSegments<'a> {
         Ok((remaining, continuation_segments))
     }
 }
+
+// TODO: reimplement this with the new parse interface.
+/* impl<'a> NomParse<'a> for ContinuationSegments<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+        let (remaining, blocks) =
+            many1((many0(BlankLine::nom_parse), IndentedCodeSegment::nom_parse)).parse(input)?;
+
+        let mut segments = Vec::new();
+        for (blank_lines, indented_code_segment) in blocks {
+            segments.extend(
+                blank_lines
+                    .into_iter()
+                    .map(IndentedCodeOrBlankLineSegment::from),
+            );
+            segments.push(IndentedCodeOrBlankLineSegment::from(indented_code_segment));
+        }
+        // The last segment is guaranteed to be an indented code segment given our algorithm.
+        let closing_segment = segments.pop().unwrap().unwrap_indented_code();
+        let continuation_segments = ContinuationSegments::new(segments, closing_segment);
+        Ok((remaining, continuation_segments))
+    }
+} */
 
 #[cfg(test)]
 mod test {
@@ -190,27 +216,23 @@ mod test {
 
     // Test that it can accept an indented code or a blank line.
     mod indented_code_or_blank_line_segment {
-        use crate::parse::traits::ParseWhole;
-
         use super::*;
-        use nom::error::Error;
+        use crate::parse::traits::StrictParse;
 
         #[test]
         fn should_reject_empty_segment() {
-            assert!(IndentedCodeOrBlankLineSegment::parse::<Error<&str>>("").is_err())
+            assert!(IndentedCodeOrBlankLineSegment::parse("").is_err())
         }
 
         #[test]
         fn should_work_with_single_char_blank_line() {
             let segment = " \n";
             assert_eq!(
-                IndentedCodeOrBlankLineSegment::parse::<Error<&str>>(segment),
                 Ok((
                     "",
-                    IndentedCodeOrBlankLineSegment::BlankLine(
-                        BlankLine::parse_whole::<Error<&str>>(segment).unwrap()
-                    )
-                ))
+                    IndentedCodeOrBlankLineSegment::BlankLine(BlankLine::strict_parse(segment))
+                )),
+                IndentedCodeOrBlankLineSegment::parse(segment),
             )
         }
 
@@ -218,13 +240,13 @@ mod test {
         fn should_work_with_indented_code() {
             let segment = "    This is indented code.\n";
             assert_eq!(
-                IndentedCodeOrBlankLineSegment::parse::<Error<&str>>(segment),
                 Ok((
                     "",
                     IndentedCodeOrBlankLineSegment::IndentedCode(
-                        IndentedCodeSegment::parse_whole::<Error<&str>>(segment).unwrap()
+                        IndentedCodeSegment::strict_parse(segment)
                     )
-                ))
+                )),
+                IndentedCodeOrBlankLineSegment::parse(segment),
             )
         }
     }

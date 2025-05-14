@@ -1,6 +1,6 @@
 use crate::{
     inline::link::LinkLabel,
-    parse::{traits::Parse, utils::escaped_sequence},
+    parse::{traits::NomParse, utils::escaped_sequence},
 };
 use nom::{
     IResult, Parser,
@@ -18,8 +18,8 @@ Between these brackets there must be at least one character that is not a space,
 Unescaped square bracket characters are not allowed inside the opening and closing square brackets of link labels.
 A link label can have at most 999 characters inside the square brackets.
 */
-impl<'a> Parse<'a> for LinkLabel<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for LinkLabel<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {

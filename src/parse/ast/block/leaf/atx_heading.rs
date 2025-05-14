@@ -1,7 +1,7 @@
 use crate::{
     ast::AtxHeading,
     parse::{
-        traits::Parse,
+        traits::NomParse,
         utils::{indented_by_less_than_4, is_char, line},
     },
 };
@@ -10,8 +10,8 @@ use nom::{
     combinator::consumed, error::ParseError, sequence::preceded,
 };
 
-impl<'a> Parse<'a> for AtxHeading<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for AtxHeading<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(line.and_then(parts()))
             .map(|(text, (level, title))| Self::new(text, title, level))
             .parse(input)

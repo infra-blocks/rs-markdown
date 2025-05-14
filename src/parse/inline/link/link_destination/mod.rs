@@ -2,17 +2,17 @@ mod bracketed;
 mod unbracketed;
 
 use crate::inline::link::{BracketedLinkDestination, LinkDestination, UnbracketedLinkDestination};
-use crate::parse::traits::Parse;
+use crate::parse::traits::NomParse;
 use nom::{IResult, Parser, branch::alt, error::ParseError};
 
-impl<'a> Parse<'a> for LinkDestination<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for LinkDestination<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
         alt((
-            BracketedLinkDestination::parse.map(Self::from),
-            UnbracketedLinkDestination::parse.map(Self::from),
+            BracketedLinkDestination::nom_parse.map(Self::from),
+            UnbracketedLinkDestination::nom_parse.map(Self::from),
         ))
         .parse(input)
     }

@@ -8,7 +8,7 @@ use nom::{
 use crate::{
     Segment,
     parse::{
-        traits::Parse,
+        traits::NomParse,
         utils::{indented_by_less_than_4, line},
     },
 };
@@ -33,8 +33,8 @@ impl<'a> TildesFencedCodeOpeningSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for TildesFencedCodeOpeningSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for TildesFencedCodeOpeningSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(line.and_then((
             indented_by_less_than_4,
             utils::tildes_fence,
@@ -78,8 +78,8 @@ impl<'a> TildesFencedCodeClosingSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for TildesFencedCodeClosingSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for TildesFencedCodeClosingSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(line.and_then((indented_by_less_than_4, utils::tildes_fence, space0, eof)))
             .map(|(segment, (indent, fence, _, _))| Self::new(segment, indent.len(), fence.len()))
             .parse(input)

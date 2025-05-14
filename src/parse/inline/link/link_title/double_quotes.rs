@@ -1,20 +1,18 @@
 use crate::{
     inline::link::DoubleQuotesLinkTitle,
     parse::{
+        input::{Input, ParseResult},
+        parser::{Map, Parser, one_of},
         segment::link_title::{
             DoubleQuotesLinkTitleMultiSegments, DoubleQuotesLinkTitleSingleSegment,
         },
         traits::Parse,
     },
 };
-use nom::{IResult, Parser, branch::alt, error::ParseError};
 
-impl<'a> Parse<'a> for DoubleQuotesLinkTitle<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        alt((
+impl<'a> Parse<&'a str> for DoubleQuotesLinkTitle<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        one_of((
             DoubleQuotesLinkTitleSingleSegment::parse.map(Self::Single),
             DoubleQuotesLinkTitleMultiSegments::parse.map(Self::Multi),
         ))

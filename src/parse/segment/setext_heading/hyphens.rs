@@ -1,7 +1,7 @@
 use crate::{
     Segment,
     parse::{
-        traits::Parse,
+        traits::NomParse,
         utils::{indented_by_less_than_4, is_char, line},
     },
 };
@@ -26,8 +26,8 @@ impl<'a> SetextHeadingHyphensUnderlineSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for SetextHeadingHyphensUnderlineSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for SetextHeadingHyphensUnderlineSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
