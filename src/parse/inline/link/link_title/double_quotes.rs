@@ -1,41 +1,23 @@
 use crate::{
     inline::link::DoubleQuotesLinkTitle,
     parse::{
+        segment::link_title::{
+            DoubleQuotesLinkTitleMultiSegments, DoubleQuotesLinkTitleSingleSegment,
+        },
         traits::Parse,
-        utils::{does_not_contain_blank_line, escaped_sequence},
     },
 };
-use nom::{
-    IResult, Parser,
-    branch::alt,
-    bytes::complete::{is_not, tag},
-    combinator::{recognize, verify},
-    error::ParseError,
-    multi::many0,
-};
+use nom::{IResult, Parser, branch::alt, error::ParseError};
 
-/*
-From the spec:
-A link title consists of either:
-...
-- a sequence of zero or more characters between straight double-quote characters ("), including a " character only if it is backslash-escaped
-...
-Although link titles may span multiple lines, they may not contain a blank line.
-*/
 impl<'a> Parse<'a> for DoubleQuotesLinkTitle<'a> {
     fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
-        verify(
-            recognize((
-                tag("\""),
-                many0(alt((escaped_sequence, is_not("\\\"")))),
-                tag("\""),
-            )),
-            does_not_contain_blank_line,
-        )
-        .map(Self::new)
+        alt((
+            DoubleQuotesLinkTitleSingleSegment::parse.map(Self::Single),
+            DoubleQuotesLinkTitleMultiSegments::parse.map(Self::Multi),
+        ))
         .parse(input)
     }
 }
@@ -46,40 +28,14 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::test_utils::test_parse_macros;
+        use crate::parse::{test_utils::test_parse_macros, traits::StrictParse};
 
         test_parse_macros!(DoubleQuotesLinkTitle);
 
-        failure_case!(should_reject_empty_string, "");
-        failure_case!(should_reject_blank_line, "\n");
-        failure_case!(should_reject_leading_whitespace, r#" """#);
-        failure_case!(should_reject_missing_closing_quote, r#"""#);
-        failure_case!(
-            should_reject_blank_line_within_content,
-            r#""Hello
-World
+        failure_case!(should_reject_empty, "");
+        failure_case!(should_reject_blank_line, " \t\n");
 
-This was a blank line!""#
-        );
-
-        success_case!(should_accept_empty_content, r#""""#);
-        success_case!(should_accept_whitespace_content, r#"" \t""#);
-        success_case!(should_accept_text_content, r#""Hello""#);
-        success_case!(should_accept_escaped_quotes, r#""Hello, \"Bro\"""#);
-        success_case!(
-            should_accept_multline_content,
-            r#""Hello
-World""#
-        );
-        success_case!(should_stop_after_closing_quote, r#""" "#, r#""""#, r#" "#);
-        success_case!(
-            should_stop_after_closing_quote_in_multiline_context,
-            r#""Hello
-\"World\""
-"#,
-            r#""Hello
-\"World\"""#,
-            "\n"
-        );
+        success_case!(should_accept_single_segment, "\"Hello!\"\n", parsed => DoubleQuotesLinkTitle::Single(DoubleQuotesLinkTitleSingleSegment::strict_parse("\"Hello!\"")), "\n");
+        success_case!(should_accept_multi_segments, "\"Hello,\nWorld!\"", parsed => DoubleQuotesLinkTitle::Multi(DoubleQuotesLinkTitleMultiSegments::strict_parse("\"Hello,\nWorld!\"")));
     }
 }
