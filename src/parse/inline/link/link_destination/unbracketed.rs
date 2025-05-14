@@ -1,6 +1,6 @@
 use crate::inline::link::UnbracketedLinkDestination;
 use crate::parse::{
-    traits::Parse,
+    traits::NomParse,
     utils::{parentheseses_balance, take_one},
 };
 use nom::{
@@ -16,8 +16,8 @@ a nonempty sequence of characters that does not start with <, does not include A
 and includes parentheses only if (a) they are backslash-escaped or (b) they are part of a balanced pair of unescaped parentheses.
 (Implementations may impose limits on parentheses nesting to avoid performance issues, but at least three levels of nesting should be supported.)
 */
-impl<'a> Parse<'a> for UnbracketedLinkDestination<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for UnbracketedLinkDestination<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {

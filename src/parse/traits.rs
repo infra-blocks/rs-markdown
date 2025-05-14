@@ -1,3 +1,4 @@
+use super::input::{Input, ParseQuantity, ParseResult};
 use nom::{
     IResult,
     error::{Error, ParseError},
@@ -7,50 +8,42 @@ use std::fmt::Debug;
 /// The trait formalizing the parsing interface of structs.
 ///
 /// It is a thin wrapper around [nom]'s parsing semantics.
-pub trait Parse<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized;
-}
-
-/// The error type returned by [ParseWhole::parse_whole].
-///
-/// It can either be a [nom::Err] in the case of a parsing error, or a [ParseWholeError::RemainingInput] variant
-/// in the case of partial input consumption.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ParseWholeError<'a, E: ParseError<&'a str>> {
-    RemainingInput(&'a str),
-    NomError(nom::Err<E>),
-}
-
-/// This trait extends the [Parse] trait to provide a way to guarantee that the entire input has been consumed
-/// on success, otherwise returning an error.
-///
-/// A blanket implementation is provided for all types that implement [Parse].
-pub trait ParseWhole<'a> {
-    fn parse_whole<Error: ParseError<&'a str>>(
-        input: &'a str,
-    ) -> Result<Self, ParseWholeError<'a, Error>>
-    where
-        Self: Sized;
-}
-
-impl<'a, T> ParseWhole<'a> for T
+pub trait NomParse<'a>
 where
-    T: Parse<'a>,
+    Self: Sized,
 {
-    fn parse_whole<Error: ParseError<&'a str>>(
-        input: &'a str,
-    ) -> Result<Self, ParseWholeError<'a, Error>> {
-        match Self::parse(input) {
-            Ok((remaining, result)) => {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>;
+}
+
+/// This trait is the main interface for parsing.
+///
+/// The implementer is expected to receive the input and return a [ParseResult].
+/// [ParseResult]s can be obtained from the [Input].
+pub trait Parse<T>
+where
+    Self: Sized,
+{
+    /// Parse the input and return the remaining input and the parsed value.
+    fn parse<I: Input<Item = T>>(input: I) -> ParseResult<I, Self>;
+}
+
+impl<'a, T> Parse<&'a str> for T
+where
+    T: NomParse<'a>,
+{
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        let segment = input.first().unwrap_or_default();
+        match Self::nom_parse::<Error<&str>>(segment) {
+            Ok((remaining, parsed)) => {
                 if remaining.is_empty() {
-                    Ok(result)
+                    input.parsed(ParseQuantity::Items(1), parsed)
                 } else {
-                    Err(ParseWholeError::RemainingInput(remaining))
+                    let bytes_remaining = remaining.len();
+                    let bytes_consumed = segment.len() - bytes_remaining;
+                    input.parsed(ParseQuantity::Bytes(bytes_consumed), parsed)
                 }
             }
-            Err(err) => Err(ParseWholeError::NomError(err)),
+            Err(_) => input.failed(),
         }
     }
 }
@@ -60,18 +53,24 @@ where
 ///
 /// This is expected to be mostly useful in the context of tests. The error used by
 /// the blanket implementation is [nom::error::Error].
-pub trait StrictParse<'a> {
+pub trait StrictParse<T>
+where
+    Self: Sized + Debug,
+{
     #[allow(dead_code)]
-    fn strict_parse(input: &'a str) -> Self
-    where
-        Self: Sized;
+    fn strict_parse<I: Input<Item = T> + Debug>(input: I) -> Self;
 }
 
-impl<'a, T> StrictParse<'a> for T
+impl<T, U> StrictParse<T> for U
 where
-    T: ParseWhole<'a>,
+    U: Parse<T> + Debug,
 {
-    fn strict_parse(input: &'a str) -> Self {
-        Self::parse_whole::<Error<&str>>(input).unwrap()
+    fn strict_parse<I: Input<Item = T> + Debug>(input: I) -> Self {
+        let (remaining, parsed) = Self::parse(input).unwrap();
+        assert!(
+            remaining.is_empty(),
+            "remaining input after strict parse: {remaining:?}"
+        );
+        parsed
     }
 }

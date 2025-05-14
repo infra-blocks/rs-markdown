@@ -1,20 +1,18 @@
 use crate::{
     inline::link::ParenthesesLinkTitle,
     parse::{
+        input::{Input, ParseResult},
+        parser::{Map, Parser, one_of},
         segment::link_title::{
             ParenthesesLinkTitleMultiSegments, ParenthesesLinkTitleSingleSegment,
         },
         traits::Parse,
     },
 };
-use nom::{IResult, Parser, branch::alt, error::ParseError};
 
-impl<'a> Parse<'a> for ParenthesesLinkTitle<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        alt((
+impl<'a> Parse<&'a str> for ParenthesesLinkTitle<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        one_of((
             ParenthesesLinkTitleSingleSegment::parse.map(Self::Single),
             ParenthesesLinkTitleMultiSegments::parse.map(Self::Multi),
         ))

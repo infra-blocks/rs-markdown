@@ -3,14 +3,15 @@ pub mod leaf;
 
 use crate::{
     ast::{Block, Leaf},
-    parse::traits::Parse,
+    parse::{
+        input::{Input, ParseResult},
+        parser::{Map, Parser},
+        traits::Parse,
+    },
 };
-use nom::Parser;
 
-impl<'a> Parse<'a> for Block<'a> {
-    fn parse<Error: nom::error::ParseError<&'a str>>(
-        input: &'a str,
-    ) -> nom::IResult<&'a str, Self, Error> {
+impl<'a> Parse<&'a str> for Block<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
         Leaf::parse.map(Block::Leaf).parse(input)
     }
 }

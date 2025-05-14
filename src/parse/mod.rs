@@ -1,5 +1,7 @@
 pub mod ast;
 pub mod inline;
+pub mod input;
+pub mod parser;
 pub mod segment;
 #[cfg(test)]
 mod test_utils;

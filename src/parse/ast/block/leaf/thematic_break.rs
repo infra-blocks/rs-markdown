@@ -1,5 +1,5 @@
 use crate::ast::ThematicBreak;
-use crate::parse::traits::Parse;
+use crate::parse::traits::NomParse;
 use crate::parse::utils::{indented_by_less_than_4, is_one_of, line};
 use nom::IResult;
 use nom::error::ParseError;
@@ -57,8 +57,8 @@ fn underscores<'a, Error: ParseError<&'a str>>()
     ))
 }
 
-impl<'a> Parse<'a> for ThematicBreak<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for ThematicBreak<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
         consumed(line.and_then(thematic_break()))
             .map(|(segment, _)| Self::new(segment))
             .parse(input)
