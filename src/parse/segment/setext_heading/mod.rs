@@ -1,7 +1,7 @@
 mod equals;
 mod hyphens;
 
-use crate::{Segment, parse::traits::Parse};
+use crate::{Segment, parse::traits::NomParse};
 pub use equals::*;
 pub use hyphens::*;
 use nom::{IResult, Parser, branch::alt, error::ParseError};
@@ -33,14 +33,14 @@ impl<'a> From<SetextHeadingHyphensUnderlineSegment<'a>> for SetextHeadingUnderli
     }
 }
 
-impl<'a> Parse<'a> for SetextHeadingUnderlineSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for SetextHeadingUnderlineSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
         alt((
-            SetextHeadingEqualsUnderlineSegment::parse.map(Self::from),
-            SetextHeadingHyphensUnderlineSegment::parse.map(Self::from),
+            SetextHeadingEqualsUnderlineSegment::nom_parse.map(Self::from),
+            SetextHeadingHyphensUnderlineSegment::nom_parse.map(Self::from),
         ))
         .parse(input)
     }

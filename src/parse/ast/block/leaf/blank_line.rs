@@ -1,4 +1,4 @@
-use crate::{ast::BlankLine, parse::traits::Parse};
+use crate::{ast::BlankLine, parse::traits::NomParse};
 use nom::{
     Parser,
     branch::alt,
@@ -7,8 +7,8 @@ use nom::{
     error::ParseError,
 };
 
-impl<'a> Parse<'a> for BlankLine<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
+impl<'a> NomParse<'a> for BlankLine<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
         consumed(alt(((space0, line_ending), (space1, eof))))
             .map(|(segment, _)| Self::new(segment))
             .parse(input)

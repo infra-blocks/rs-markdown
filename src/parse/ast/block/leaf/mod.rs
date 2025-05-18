@@ -6,15 +6,16 @@ pub mod thematic_break;
 
 use crate::{
     ast::{AtxHeading, BlankLine, FencedCode, IndentedCode, Leaf, ThematicBreak},
-    parse::traits::Parse,
+    parse::{
+        input::{Input, ParseResult},
+        parser::{Map, Parser, one_of},
+        traits::Parse,
+    },
 };
-use nom::{Parser, branch::alt};
 
-impl<'a> Parse<'a> for Leaf<'a> {
-    fn parse<Error: nom::error::ParseError<&'a str>>(
-        input: &'a str,
-    ) -> nom::IResult<&'a str, Self, Error> {
-        alt((
+impl<'a> Parse<&'a str> for Leaf<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        one_of((
             AtxHeading::parse.map(Leaf::AtxHeading),
             BlankLine::parse.map(Leaf::BlankLine),
             FencedCode::parse.map(Leaf::FencedCode),

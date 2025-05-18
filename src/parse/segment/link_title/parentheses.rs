@@ -1,14 +1,18 @@
 use crate::{
     Segment, Segments,
-    parse::{traits::Parse, utils::is_blank_line},
+    parse::{
+        input::{Input, ParseResult},
+        parser::{Parser, ZeroToMany},
+        traits::{NomParse, Parse},
+        utils::is_blank_line,
+    },
 };
 use nom::{
-    IResult, Parser,
+    IResult, Parser as _,
     bytes::complete::tag,
     character::complete::line_ending,
     combinator::{recognize, verify},
     error::ParseError,
-    multi::many0,
 };
 use std::{iter::FusedIterator, slice};
 
@@ -21,8 +25,8 @@ impl<'a> ParenthesesLinkTitleSingleSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ParenthesesLinkTitleSingleSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for ParenthesesLinkTitleSingleSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -59,19 +63,14 @@ impl<'a> ParenthesesLinkTitleMultiSegments<'a> {
     }
 }
 
-// TODO: make sure to reimplement this with the new input interface.
-impl<'a> Parse<'a> for ParenthesesLinkTitleMultiSegments<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        (
-            ParenthesesLinkTitleOpeningSegment::parse,
-            many0(ParenthesesLinkTitleContinuationSegment::parse),
-            ParenthesesLinkTitleClosingSegment::parse,
-        )
-            .map(|(opening, continuations, closing)| Self::new(opening, continuations, closing))
-            .parse(input)
+impl<'a> Parse<&'a str> for ParenthesesLinkTitleMultiSegments<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        let (remaining, opening) = ParenthesesLinkTitleOpeningSegment::parse(input)?;
+        let (remaining, continuations) = ParenthesesLinkTitleContinuationSegment::parse
+            .zero_to_many()
+            .parse(remaining)?;
+        let (remaining, closing) = ParenthesesLinkTitleClosingSegment::parse(remaining)?;
+        Ok((remaining, Self::new(opening, continuations, closing)))
     }
 }
 
@@ -128,8 +127,8 @@ impl<'a> ParenthesesLinkTitleOpeningSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ParenthesesLinkTitleOpeningSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for ParenthesesLinkTitleOpeningSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -148,8 +147,8 @@ impl<'a> ParenthesesLinkTitleContinuationSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ParenthesesLinkTitleContinuationSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for ParenthesesLinkTitleContinuationSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -171,8 +170,8 @@ impl<'a> ParenthesesLinkTitleClosingSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for ParenthesesLinkTitleClosingSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for ParenthesesLinkTitleClosingSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {

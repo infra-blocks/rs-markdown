@@ -1,57 +1,69 @@
 use crate::{
-    Segment,
     ast::BackticksFencedCode,
     parse::{
+        input::{Input, ParseQuantity, ParseResult},
+        parser::{Map, Parser, Validate},
         segment::fenced_code::{
             BackticksFencedCodeClosingSegment, BackticksFencedCodeOpeningSegment,
         },
         traits::Parse,
-        utils::line,
     },
 };
-use nom::{IResult, Parser, combinator::recognize, error::ParseError};
 
-impl<'a> Parse<'a> for BackticksFencedCode<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        let (mut remaining, opening_segment) =
-            BackticksFencedCodeOpeningSegment::parse::<Error>(input)?;
-        let mut content_segments = Vec::new();
-        // We then loop until we find a closing segment for the opening segment or the end of input.
-        let (remaining, closing_segment) = loop {
-            let Ok((inner, closing_segment)) =
-                BackticksFencedCodeClosingSegment::parse::<Error>(remaining)
-            // If it's not a closing segment, we just add it to the content.
-            else {
-                // Take the line. and count it as content segment.
-                match recognize(line::<Error>).parse(remaining) {
-                    Ok((inner, line)) => {
-                        content_segments.push(line);
-                        remaining = inner;
-                        continue;
-                    }
-                    Err(_) => {
-                        // If we can't parse a line, we are done.
-                        assert_eq!(remaining, "");
-                        break ("", None);
-                    }
-                }
-            };
-            // If it is a closing segment, we still need to check that its fence length is long enough.
-            if closing_segment.closes(&opening_segment) {
-                // It's a match for the opening segment, so we are done.
-                break (inner, Some(closing_segment));
-            } else {
-                // Otherwise, we treat it as regular content.
-                content_segments.push(closing_segment.segment());
-                remaining = inner;
-                continue;
+enum ContentOrClosingSegment<'a> {
+    Content(&'a str),
+    Closing(BackticksFencedCodeClosingSegment<'a>),
+}
+
+fn content_or_closing_segment<'a, I: Input<Item = &'a str>>(
+    opening: &BackticksFencedCodeOpeningSegment<'a>,
+) -> impl Fn(I) -> ParseResult<I, ContentOrClosingSegment<'a>> {
+    |input: I| {
+        if input.is_empty() {
+            return Err(input);
+        }
+        match BackticksFencedCodeClosingSegment::parse
+            .validate(|segment: &BackticksFencedCodeClosingSegment| segment.closes(opening))
+            .map(ContentOrClosingSegment::Closing)
+            .parse(input)
+        {
+            Ok((remaning, closing)) => Ok((remaning, closing)),
+            Err(input) => {
+                // If it's not a closing segment, then it's content. It's safe to unwrap because we have already
+                // checked that the input is not empty.
+                let segment = input.first().unwrap();
+                input.parsed(
+                    ParseQuantity::Items(1),
+                    ContentOrClosingSegment::Content(segment),
+                )
             }
-        };
+        }
+    }
+}
 
-        Ok((
-            remaining,
-            Self::new(opening_segment, content_segments, closing_segment),
-        ))
+impl<'a> Parse<&'a str> for BackticksFencedCode<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        let (mut remaining, opening) = BackticksFencedCodeOpeningSegment::parse(input)?;
+        let mut content_segments = Vec::new();
+        loop {
+            let result = content_or_closing_segment(&opening).parse(remaining);
+            match result {
+                Ok((inner, ContentOrClosingSegment::Content(segment))) => {
+                    remaining = inner;
+                    content_segments.push(segment);
+                }
+                Ok((inner, ContentOrClosingSegment::Closing(closing_segment))) => {
+                    return Ok((
+                        inner,
+                        Self::new(opening, content_segments, Some(closing_segment)),
+                    ));
+                }
+                Err(input) => {
+                    // If we get there it's because we ran out of input.
+                    return Ok((input, Self::new(opening, content_segments, None)));
+                }
+            }
+        }
     }
 }
 

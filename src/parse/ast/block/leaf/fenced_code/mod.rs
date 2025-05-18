@@ -3,16 +3,16 @@ mod tildes;
 
 use crate::{
     ast::{BackticksFencedCode, FencedCode, TildesFencedCode},
-    parse::traits::Parse,
+    parse::{
+        input::{Input, ParseResult},
+        parser::{Map, Parser, one_of},
+        traits::Parse,
+    },
 };
-use nom::{Parser, branch::alt, error::ParseError};
 
-impl<'a> Parse<'a> for FencedCode<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        alt((
+impl<'a> Parse<&'a str> for FencedCode<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        one_of((
             BackticksFencedCode::parse.map(Self::from),
             TildesFencedCode::parse.map(Self::from),
         ))

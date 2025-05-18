@@ -1,12 +1,12 @@
 use crate::inline::link::BracketedLinkDestination;
-use crate::parse::{traits::Parse, utils::escaped_sequence};
+use crate::parse::{traits::NomParse, utils::escaped_sequence};
 use nom::{
     IResult, Parser, branch::alt, bytes::complete::is_not, character::complete::char,
     combinator::recognize, error::ParseError, multi::many0,
 };
 
-impl<'a> Parse<'a> for BracketedLinkDestination<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for BracketedLinkDestination<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {

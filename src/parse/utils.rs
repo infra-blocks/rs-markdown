@@ -1,4 +1,4 @@
-use super::traits::ParseWhole;
+use super::traits::NomParse;
 use crate::ast::BlankLine;
 use nom::{
     IResult, Parser,
@@ -12,6 +12,20 @@ use nom::{
     error::{Error, ParseError},
     sequence::terminated,
 };
+
+// TODO: should have that in a utility crate.
+#[cfg(test)]
+macro_rules! alias {
+    ($alias:ident, $expression:expr) => {
+        macro_rules! $alias {
+            () => {
+                $expression
+            };
+        }
+    };
+}
+#[cfg(test)]
+pub(super) use alias;
 
 /// Parses any escaped character sequence.
 ///
@@ -52,7 +66,10 @@ pub fn indented_by_less_than_4<'a, Error: ParseError<&'a str>>(
 ///
 /// It will inevitably return false if the input contains more than one line.
 pub fn is_blank_line(line: &str) -> bool {
-    BlankLine::parse_whole::<Error<&str>>(line).is_ok()
+    match BlankLine::nom_parse::<Error<&str>>(line) {
+        Ok((remaining, _)) => remaining.is_empty(),
+        Err(_) => false,
+    }
 }
 
 /// Returns a predicate that returns whether the character received is the

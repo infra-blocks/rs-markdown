@@ -1,14 +1,18 @@
 use crate::{
     Segment, Segments,
-    parse::{traits::Parse, utils::is_blank_line},
+    parse::{
+        input::{Input, ParseResult},
+        parser::{Parser, ZeroToMany},
+        traits::{NomParse, Parse},
+        utils::is_blank_line,
+    },
 };
 use nom::{
-    IResult, Parser,
+    IResult, Parser as _,
     bytes::complete::tag,
     character::complete::line_ending,
     combinator::{recognize, verify},
     error::ParseError,
-    multi::many0,
 };
 use std::{iter::FusedIterator, slice};
 
@@ -21,8 +25,8 @@ impl<'a> DoubleQuotesLinkTitleSingleSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for DoubleQuotesLinkTitleSingleSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for DoubleQuotesLinkTitleSingleSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -59,19 +63,14 @@ impl<'a> DoubleQuotesLinkTitleMultiSegments<'a> {
     }
 }
 
-// TODO: make sure to reimplement this with the new input interface.
-impl<'a> Parse<'a> for DoubleQuotesLinkTitleMultiSegments<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        (
-            DoubleQuotesLinkTitleOpeningSegment::parse,
-            many0(DoubleQuotesLinkTitleContinuationSegment::parse),
-            DoubleQuotesLinkTitleClosingSegment::parse,
-        )
-            .map(|(opening, continuations, closing)| Self::new(opening, continuations, closing))
-            .parse(input)
+impl<'a> Parse<&'a str> for DoubleQuotesLinkTitleMultiSegments<'a> {
+    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+        let (remaining, opening) = DoubleQuotesLinkTitleOpeningSegment::parse(input)?;
+        let (remaining, continuations) = DoubleQuotesLinkTitleContinuationSegment::parse
+            .zero_to_many()
+            .parse(remaining)?;
+        let (remaining, closing) = DoubleQuotesLinkTitleClosingSegment::parse(remaining)?;
+        Ok((remaining, Self::new(opening, continuations, closing)))
     }
 }
 
@@ -128,8 +127,8 @@ impl<'a> DoubleQuotesLinkTitleOpeningSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for DoubleQuotesLinkTitleOpeningSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for DoubleQuotesLinkTitleOpeningSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -148,8 +147,8 @@ impl<'a> DoubleQuotesLinkTitleContinuationSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for DoubleQuotesLinkTitleContinuationSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for DoubleQuotesLinkTitleContinuationSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
@@ -171,8 +170,8 @@ impl<'a> DoubleQuotesLinkTitleClosingSegment<'a> {
     }
 }
 
-impl<'a> Parse<'a> for DoubleQuotesLinkTitleClosingSegment<'a> {
-    fn parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
+impl<'a> NomParse<'a> for DoubleQuotesLinkTitleClosingSegment<'a> {
+    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
     where
         Self: Sized,
     {
