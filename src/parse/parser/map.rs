@@ -72,20 +72,20 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::parser::take_chars;
+    use crate::parse::{lines, parser::take_chars};
 
     #[test]
     fn test_should_return_mapped_value_upon_success() {
         let parser = take_chars(4).map(|s: &str| s.to_uppercase());
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("1234", "TEST".to_string())), result);
+        let result = parser.parse(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "TEST".to_string())), result);
     }
 
     #[test]
     fn test_should_not_be_called_upon_failure() {
         let parser = take_chars(4).map(|_| panic!("you fucked up big time"));
-        let result = parser.parse("bad");
-        assert_eq!(Err("bad"), result);
+        let result = parser.parse(lines!("bad"));
+        assert_eq!(Err(lines!("bad")), result);
     }
 
     #[test]
@@ -93,8 +93,8 @@ mod test {
         let mut parser = take_chars(4);
         let parser = |input| parser.parse_mut(input);
         let mut parser = parser.map(|s: &str| s.to_uppercase());
-        let result = parser.parse_mut("test1234");
-        assert_eq!(Ok(("1234", "TEST".to_string())), result);
+        let result = parser.parse_mut(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "TEST".to_string())), result);
     }
 
     #[test]
@@ -102,7 +102,7 @@ mod test {
         let parser = take_chars(4);
         let parser = |input| parser.parse_once(input);
         let parser = parser.map(|s: &str| s.to_ascii_uppercase());
-        let result = parser.parse_once("test1234");
-        assert_eq!(Ok(("1234", "TEST".to_string())), result);
+        let result = parser.parse_once(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "TEST".to_string())), result);
     }
 }

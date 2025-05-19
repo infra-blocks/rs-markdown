@@ -6,7 +6,6 @@ use nom::{
     IResult,
     error::{Error, ParseError},
 };
-use std::fmt::Debug;
 
 /// The trait formalizing the parsing interface of structs.
 ///
@@ -48,32 +47,5 @@ where
             }
             Err(_) => input.failed(),
         }
-    }
-}
-
-/// Yet another utility trait on top of [Parse] that provides a way to parse a struct
-/// using [ParseWhole] and unwrap the result.
-///
-/// This is expected to be mostly useful in the context of tests. The error used by
-/// the blanket implementation is [nom::error::Error].
-pub trait StrictParse<T>
-where
-    Self: Sized + Debug,
-{
-    #[allow(dead_code)]
-    fn strict_parse<I: Input<Item = T> + Debug>(input: I) -> Self;
-}
-
-impl<T, U> StrictParse<T> for U
-where
-    U: Parse<T> + Debug,
-{
-    fn strict_parse<I: Input<Item = T> + Debug>(input: I) -> Self {
-        let (remaining, parsed) = Self::parse(input).unwrap();
-        assert!(
-            remaining.is_empty(),
-            "remaining input after strict parse: {remaining:?}"
-        );
-        parsed
     }
 }

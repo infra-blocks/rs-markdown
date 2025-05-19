@@ -74,7 +74,7 @@ mod test {
 
     mod parse {
         use super::*;
-        use crate::parse::{test_utils::test_parse_macros, traits::StrictParse};
+        use crate::parse::test_utils::{StrictParse, test_parse_macros};
 
         test_parse_macros!(BackticksFencedCode);
 

@@ -84,6 +84,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::parse::lines;
     use crate::parse::parser::fail::typed_fail;
     use crate::parse::parser::take_chars;
     use crate::parse::utils::alias;
@@ -95,19 +96,22 @@ mod test {
         let parser = fail!().validate(|_: &&str| {
             panic!("fucked up big time here");
         });
-        assert_eq!(Err("test1234"), parser.parse("test1234"));
+        assert_eq!(Err(lines!("test1234")), parser.parse(lines!("test1234")));
     }
 
     #[test]
     fn test_rejects_when_parser_succeeds_but_predicate_returns_false() {
         let parser = take_chars(4).validate(|_: &&str| false);
-        assert_eq!(Err("test1234"), parser.parse("test1234"));
+        assert_eq!(Err(lines!("test1234")), parser.parse(lines!("test1234")));
     }
 
     #[test]
     fn test_succeeds_when_parser_succeeds_and_predicate_returns_true() {
         let parser = take_chars(4).validate(|_: &&str| true);
-        assert_eq!(Ok(("1234", "test")), parser.parse("test1234"));
+        assert_eq!(
+            Ok((lines!("1234"), "test")),
+            parser.parse(lines!("test1234"))
+        );
     }
 
     #[test]
@@ -115,7 +119,10 @@ mod test {
         let mut parser = take_chars(4);
         let parser = |input| parser.parse_mut(input);
         let mut parser = parser.validate(|_: &&str| true);
-        assert_eq!(Ok(("1234", "test")), parser.parse_mut("test1234"));
+        assert_eq!(
+            Ok((lines!("1234"), "test")),
+            parser.parse_mut(lines!("test1234"))
+        );
     }
 
     #[test]
@@ -123,6 +130,9 @@ mod test {
         let parser = take_chars(4);
         let parser = |input| parser.parse_once(input);
         let parser = parser.validate(|_: &&str| true);
-        assert_eq!(Ok(("1234", "test")), parser.parse_once("test1234"));
+        assert_eq!(
+            Ok((lines!("1234"), "test")),
+            parser.parse_once(lines!("test1234"))
+        );
     }
 }

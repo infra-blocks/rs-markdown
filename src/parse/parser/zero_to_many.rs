@@ -106,6 +106,7 @@ where
 mod test {
     use super::*;
     use crate::parse::{
+        lines,
         parser::{take_chars, typed_fail},
         utils::alias,
     };
@@ -115,22 +116,22 @@ mod test {
     #[test]
     fn test_should_return_empty_array_on_failure() {
         let parser = fail!().zero_to_many();
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("test1234", vec![])), result);
+        let result = parser.parse(lines!("test1234"));
+        assert_eq!(Ok((lines!("test1234"), vec![])), result);
     }
 
     #[test]
     fn test_should_succeed_if_it_can_parse_one() {
         let parser = take_chars(4).zero_to_many();
-        let result = parser.parse("test12");
-        assert_eq!(Ok(("12", vec!["test"])), result);
+        let result = parser.parse(lines!("test12"));
+        assert_eq!(Ok((lines!("12"), vec!["test"])), result);
     }
 
     #[test]
     fn test_should_return_as_many_values_as_possible() {
         let parser = take_chars(4).zero_to_many();
-        let result = parser.parse("test123456");
-        assert_eq!(Ok(("56", vec!["test", "1234"])), result);
+        let result = parser.parse(lines!("test123456"));
+        assert_eq!(Ok((lines!("56"), vec!["test", "1234"])), result);
     }
 
     #[test]
@@ -138,8 +139,8 @@ mod test {
         let mut parser = take_chars(4);
         let parser = |input| parser.parse_mut(input);
         let mut parser = parser.zero_to_many();
-        let result = parser.parse_mut("test123456");
-        assert_eq!(Ok(("56", vec!["test", "1234"])), result);
+        let result = parser.parse_mut(lines!("test123456"));
+        assert_eq!(Ok((lines!("56"), vec!["test", "1234"])), result);
     }
 
     #[test]
@@ -147,7 +148,7 @@ mod test {
         let parser = take_chars(4);
         let parser = |input| parser.parse_once(input);
         let parser = parser.zero_to_many();
-        let result = parser.parse_once("test123456");
-        assert_eq!(Ok(("56", vec!["test", "1234"])), result);
+        let result = parser.parse_once(lines!("test123456"));
+        assert_eq!(Ok((lines!("56"), vec!["test", "1234"])), result);
     }
 }

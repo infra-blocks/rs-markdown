@@ -66,6 +66,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::parse::lines;
 
     #[test]
     #[should_panic]
@@ -75,25 +76,28 @@ mod test {
 
     #[test]
     fn should_reject_when_input_is_smaller() {
-        let input = "abc";
-        assert_eq!(Err("abc"), take_chars(4).parse(input));
+        let input = lines!("abc");
+        assert_eq!(Err(lines!("abc")), take_chars(4).parse(input));
     }
 
     #[test]
     fn should_work_when_exhausting_input() {
-        let input = "abc";
-        assert_eq!(Ok(("", "abc")), take_chars(3).parse(input));
+        let input = lines!("abc");
+        assert_eq!(Ok((lines!(""), "abc")), take_chars(3).parse(input));
     }
 
     #[test]
     fn should_work_when_subset_of_input() {
-        let input = "abc";
-        assert_eq!(Ok(("c", "ab")), take_chars(2).parse(input));
+        let input = lines!("abc");
+        assert_eq!(Ok((lines!("c"), "ab")), take_chars(2).parse(input));
     }
 
     #[test]
     fn should_work_with_unicode() {
-        let input = "wörd ist pöpsche";
-        assert_eq!(Ok((" ist pöpsche", "wörd")), take_chars(4).parse(input));
+        let input = lines!("wörd ist pöpsche");
+        assert_eq!(
+            Ok((lines!(" ist pöpsche"), "wörd")),
+            take_chars(4).parse(input)
+        );
     }
 }

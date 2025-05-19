@@ -4,8 +4,13 @@ pub mod render;
 
 use api::ast::Tree;
 pub use api::*;
-use parse::traits::StrictParse;
+use parse::{input::Input, lines, traits::Parse};
 
 pub fn parse(input: &str) -> Tree {
-    Tree::strict_parse(input)
+    let (remaining, parsed) =
+        Tree::parse(lines!(input)).expect("unexpected error parsing markdown");
+    if !remaining.is_empty() {
+        panic!("unexpected remaining input: {remaining:?}");
+    }
+    parsed
 }

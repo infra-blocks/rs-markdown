@@ -104,7 +104,7 @@ mod test {
 
     mod segments {
         use super::*;
-        use crate::parse::traits::StrictParse;
+        use crate::parse::test_utils::StrictParse;
         use std::vec;
 
         #[test]

@@ -246,6 +246,7 @@ where
 mod test {
     use super::*;
     use crate::parse::{
+        lines,
         parser::{take_chars, typed_crash, typed_fail},
         utils::alias,
     };
@@ -256,35 +257,35 @@ mod test {
     #[test]
     fn should_fail_if_all_parsers_fail() {
         let parser = one_of((fail!(), fail!()));
-        assert_eq!(Err("test1234"), parser.parse("test1234"));
+        assert_eq!(Err(lines!("test1234")), parser.parse(lines!("test1234")));
     }
 
     #[test]
     fn should_succeed_and_not_call_other_parsers_when_first_succeeds() {
         let parser = one_of((take_chars(4), crash!()));
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("1234", "test")), result);
+        let result = parser.parse(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "test")), result);
     }
 
     #[test]
     fn should_succeed_if_first_parser_fails_and_second_succeeds() {
         let parser = one_of((fail!(), take_chars(4)));
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("1234", "test")), result);
+        let result = parser.parse(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "test")), result);
     }
 
     #[test]
     fn should_work_with_3_parsers() {
         let parser = one_of((fail!(), fail!(), take_chars(4)));
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("1234", "test")), result);
+        let result = parser.parse(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "test")), result);
     }
 
     #[test]
     fn should_work_with_4_parsers() {
         let parser = one_of((fail!(), fail!(), fail!(), take_chars(4)));
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("1234", "test")), result);
+        let result = parser.parse(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "test")), result);
     }
 
     #[test]
@@ -292,8 +293,8 @@ mod test {
         let mut left = take_chars(4);
         let left = |input| left.parse_mut(input);
         let mut parser = one_of((left, take_chars(4)));
-        let result = parser.parse_mut("test1234");
-        assert_eq!(Ok(("1234", "test")), result);
+        let result = parser.parse_mut(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "test")), result);
     }
 
     #[test]
@@ -301,7 +302,7 @@ mod test {
         let left = take_chars(4);
         let left = |input| left.parse_once(input);
         let parser = one_of((left, take_chars(4)));
-        let result = parser.parse_once("test1234");
-        assert_eq!(Ok(("1234", "test")), result);
+        let result = parser.parse_once(lines!("test1234"));
+        assert_eq!(Ok((lines!("1234"), "test")), result);
     }
 }
