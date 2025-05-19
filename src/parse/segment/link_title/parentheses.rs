@@ -357,7 +357,7 @@ This is not included!",
 
         mod multi {
             use super::*;
-            use crate::parse::traits::StrictParse;
+            use crate::parse::test_utils::StrictParse;
 
             #[test]
             fn should_work_without_continuations() {

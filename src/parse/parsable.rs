@@ -1,6 +1,7 @@
 pub trait Parsable: Sized {
     type Quantity;
 
+    // TODO: trim left, trim right, and split_at (the latter generates the two previous)
     /// Consumes a certain quantity within self and returns the remains.
     fn consume(self, quantity: Self::Quantity) -> Self;
 

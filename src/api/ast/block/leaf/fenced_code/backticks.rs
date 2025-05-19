@@ -104,7 +104,7 @@ mod test {
     use super::*;
 
     mod content_segments {
-        use crate::parse::traits::StrictParse;
+        use crate::parse::test_utils::StrictParse;
 
         use super::*;
 
@@ -131,7 +131,7 @@ mod test {
     }
 
     mod segments {
-        use crate::parse::traits::StrictParse;
+        use crate::parse::test_utils::StrictParse;
 
         use super::*;
 

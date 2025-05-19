@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 macro_rules! test_parse_macros {
     ($type:ty) => {
         macro_rules! failure_case {
@@ -5,8 +7,9 @@ macro_rules! test_parse_macros {
                 #[test]
                 fn $test() {
                     use crate::parse::traits::Parse;
+                    use crate::parse::Lines;
 
-                    let result = <$type>::parse($input);
+                    let result = <$type>::parse(Lines::from($input));
                     assert!(result.is_err(), "{:?}", result);
                 }
             };
@@ -26,15 +29,41 @@ macro_rules! test_parse_macros {
                         #[test]
                         fn $test() {
                             use crate::parse::traits::Parse;
+                            use crate::parse::Lines;
 
                             assert_eq!(
-                                <$type>::parse($input),
-                                Ok(($remaining, $parsed))
+                                <$type>::parse(Lines::from($input)),
+                                Ok((Lines::from($remaining), $parsed))
                             );
                         }
                     };
                 }
     };
 }
-
+use super::{input::Input, traits::Parse};
+use crate::parse::Lines;
 pub(super) use test_parse_macros;
+
+#[cfg(test)]
+pub trait StrictParse<'a>
+where
+    Self: Sized + Debug,
+{
+    #[allow(dead_code)]
+    fn strict_parse(input: &'a str) -> Self;
+}
+
+#[cfg(test)]
+impl<'a, U> StrictParse<'a> for U
+where
+    U: Parse<&'a str> + Debug,
+{
+    fn strict_parse(input: &'a str) -> Self {
+        let (remaining, parsed) = Self::parse(Lines::from(input)).unwrap();
+        assert!(
+            remaining.is_empty(),
+            "remaining input after strict parse: {remaining:?}"
+        );
+        parsed
+    }
+}

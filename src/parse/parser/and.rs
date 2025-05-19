@@ -86,6 +86,7 @@ where
 mod test {
     use super::*;
     use crate::parse::{
+        lines,
         parser::{take_chars, typed_fail},
         utils::alias,
     };
@@ -95,24 +96,24 @@ mod test {
     #[test]
     fn test_rejects_when_left_rejects() {
         let parser = and(fail!(), take_chars(4));
-        let result = parser.parse("test");
-        assert_eq!(Err("test"), result);
+        let result = parser.parse(lines!("test"));
+        assert_eq!(Err(lines!("test")), result);
     }
 
     #[test]
     fn test_rejects_when_right_rejects() {
         let parser = take_chars(4).and(fail!());
-        let result = parser.parse("test");
+        let result = parser.parse(lines!("test"));
         // Even though the first parser succeeds and consumes the first 4 bytes, a failure in the
         // second should rewind the whole thang.
-        assert_eq!(Err("test"), result);
+        assert_eq!(Err(lines!("test")), result);
     }
 
     #[test]
     fn test_success_when_both_succeed() {
         let parser = take_chars(4).and(take_chars(4));
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("", ("test", "1234"))), result);
+        let result = parser.parse(lines!("test1234"));
+        assert_eq!(Ok((lines!(""), ("test", "1234"))), result);
     }
 
     #[test]
@@ -120,8 +121,8 @@ mod test {
         let mut parser = take_chars(4);
         let left = |input| parser.parse_mut(input);
         let mut parser = left.and(take_chars(4));
-        let result = parser.parse_mut("test1234");
-        assert_eq!(Ok(("", ("test", "1234"))), result);
+        let result = parser.parse_mut(lines!("test1234"));
+        assert_eq!(Ok((lines!(""), ("test", "1234"))), result);
     }
 
     #[test]
@@ -129,7 +130,7 @@ mod test {
         let parser = take_chars(4);
         let left = |input| parser.parse_once(input);
         let parser = left.and(take_chars(4));
-        let result = parser.parse_once("test1234");
-        assert_eq!(Ok(("", ("test", "1234"))), result);
+        let result = parser.parse_once(lines!("test1234"));
+        assert_eq!(Ok((lines!(""), ("test", "1234"))), result);
     }
 }

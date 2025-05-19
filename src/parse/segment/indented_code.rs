@@ -196,37 +196,25 @@ mod test {
     // Test that it can accept an indented code or a blank line.
     mod indented_code_or_blank_line_segment {
         use super::*;
-        use crate::parse::traits::StrictParse;
+        use crate::parse::test_utils::{StrictParse, test_parse_macros};
 
-        #[test]
-        fn should_reject_empty_segment() {
-            assert!(IndentedCodeOrBlankLineSegment::parse("").is_err())
-        }
+        test_parse_macros!(IndentedCodeOrBlankLineSegment);
 
-        #[test]
-        fn should_work_with_single_char_blank_line() {
-            let segment = " \n";
-            assert_eq!(
-                Ok((
-                    "",
-                    IndentedCodeOrBlankLineSegment::BlankLine(BlankLine::strict_parse(segment))
-                )),
-                IndentedCodeOrBlankLineSegment::parse(segment),
-            )
-        }
+        failure_case!(should_reject_empty, "");
 
-        #[test]
-        fn should_work_with_indented_code() {
-            let segment = "    This is indented code.\n";
-            assert_eq!(
-                Ok((
-                    "",
-                    IndentedCodeOrBlankLineSegment::IndentedCode(
-                        IndentedCodeSegment::strict_parse(segment)
-                    )
-                )),
-                IndentedCodeOrBlankLineSegment::parse(segment),
-            )
-        }
+        success_case!(
+            should_work_with_blank_line,
+            " \n",
+            parsed => IndentedCodeOrBlankLineSegment::BlankLine(BlankLine::strict_parse(" \n")),
+            ""
+        );
+        success_case!(
+            should_work_with_indented_code,
+            "    This is indented code.\n",
+            parsed => IndentedCodeOrBlankLineSegment::IndentedCode(
+                IndentedCodeSegment::strict_parse("    This is indented code.\n")
+            ),
+            ""
+        );
     }
 }

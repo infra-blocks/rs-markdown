@@ -37,7 +37,7 @@ mod test {
             ast::BlankLine,
             parse::{
                 segment::indented_code::IndentedCodeOrBlankLineSegment,
-                test_utils::test_parse_macros, traits::StrictParse,
+                test_utils::{StrictParse, test_parse_macros},
             },
         };
 
