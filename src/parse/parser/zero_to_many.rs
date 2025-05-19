@@ -1,5 +1,5 @@
 use super::{Parser, ParserMut, ParserOnce};
-use crate::parse::input::{Input, ParseResult};
+use crate::parse::{ParseResult, input::Input};
 
 pub trait ZeroToMany: Sized {
     fn zero_to_many(self) -> ZeroToManyParser<Self>;

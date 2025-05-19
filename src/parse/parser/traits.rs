@@ -1,4 +1,4 @@
-use crate::parse::input::{Input, ParseResult};
+use crate::parse::{ParseResult, input::Input};
 
 pub trait Parser<I>
 where

@@ -5,7 +5,8 @@ mod single_quotes;
 use crate::{
     inline::link::{DoubleQuotesLinkTitle, LinkTitle, ParenthesesLinkTitle, SingleQuotesLinkTitle},
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         parser::{Map, Parser, one_of},
         traits::Parse,
     },

@@ -4,7 +4,8 @@ pub mod leaf;
 use crate::{
     ast::{Block, Leaf},
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         parser::{Map, Parser},
         traits::Parse,
     },

@@ -1,7 +1,8 @@
 pub mod block;
 
 use super::{
-    input::{Input, ParseResult},
+    ParseResult,
+    input::Input,
     parser::{Map, Parser, ZeroToMany},
     traits::Parse,
 };

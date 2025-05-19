@@ -3,7 +3,8 @@ use crate::{
     Segment,
     ast::BlankLine,
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         parser::{And, OneToMany, Parser, ZeroToMany},
         traits::{NomParse, Parse},
         utils::{indented_by_at_least_4, line, non_whitespace},

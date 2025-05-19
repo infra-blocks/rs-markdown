@@ -1,5 +1,8 @@
 use super::{Parser, ParserMut, ParserOnce};
-use crate::parse::input::{Input, ParseQuantity, ParseResult};
+use crate::parse::{
+    ParseResult,
+    input::{Input, ParseQuantity},
+};
 use nom::AsChar;
 
 pub fn take_chars(count: usize) -> TakeChars {

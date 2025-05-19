@@ -1,5 +1,5 @@
 use super::{Parser, ParserMut, ParserOnce};
-use crate::parse::input::{Input, ParseResult};
+use crate::parse::{ParseResult, input::Input};
 
 pub trait Or<R>: Sized {
     fn or(self, right: R) -> OrParser<Self, R>;

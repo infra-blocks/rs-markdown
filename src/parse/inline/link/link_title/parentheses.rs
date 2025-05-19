@@ -1,7 +1,8 @@
 use crate::{
     inline::link::ParenthesesLinkTitle,
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         parser::{Map, Parser, one_of},
         segment::link_title::{
             ParenthesesLinkTitleMultiSegments, ParenthesesLinkTitleSingleSegment,
