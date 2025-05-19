@@ -80,11 +80,10 @@ impl<'a> StrInput<'a> for &'a str {
             // Validate bytes
             ParseQuantity::Bytes(count) => {
                 assert!(
-                    count >= 1 && count <= self.len(),
-                    "invalid byte count {} for input {}, expected range [{}, {}]",
+                    count <= self.len(),
+                    "invalid byte count {} for input {}, expected range [0, {}]",
                     count,
                     self,
-                    1,
                     self.len()
                 );
                 count

@@ -1,6 +1,7 @@
-use super::{Parser, ParserMut, ParserOnce};
-use crate::parse::input::{Input, ParseQuantity, ParseResult};
-use nom::AsChar;
+use crate::parse::{
+    input::{Input, ParseQuantity, ParseResult},
+    parser::{Parser, ParserMut, ParserOnce},
+};
 
 pub fn take_chars(count: usize) -> TakeChars {
     if count == 0 {
@@ -33,7 +34,11 @@ where
         if item.chars().count() < self.count {
             return input.failed();
         }
-        let offset = item.chars().take(self.count).map(|char| char.len()).sum();
+        let offset = item
+            .chars()
+            .take(self.count)
+            .map(|char| char.len_utf8())
+            .sum();
         input.parsed(ParseQuantity::Bytes(offset), &item[..offset])
     }
 }

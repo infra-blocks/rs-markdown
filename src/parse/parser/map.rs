@@ -72,7 +72,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::parser::take_chars;
+    use crate::parse::parser::item::take_chars;
 
     #[test]
     fn test_should_return_mapped_value_upon_success() {

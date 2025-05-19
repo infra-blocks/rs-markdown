@@ -246,7 +246,7 @@ where
 mod test {
     use super::*;
     use crate::parse::{
-        parser::{take_chars, typed_crash, typed_fail},
+        parser::{item::take_chars, typed_crash, typed_fail},
         utils::alias,
     };
 

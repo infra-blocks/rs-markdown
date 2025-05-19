@@ -85,7 +85,7 @@ where
 mod test {
     use super::*;
     use crate::parse::parser::fail::typed_fail;
-    use crate::parse::parser::take_chars;
+    use crate::parse::parser::item::take_chars;
     use crate::parse::utils::alias;
 
     alias!(fail, typed_fail![&'static str]);
