@@ -4,15 +4,14 @@ mod tildes;
 use crate::{
     ast::{BackticksFencedCode, FencedCode, TildesFencedCode},
     parse::{
-        ParseResult,
         input::Input,
-        parser::{Map, Parser, one_of},
+        parser::{Map, ParseResult, Parser, one_of},
         traits::Parse,
     },
 };
 
 impl<'a> Parse<&'a str> for FencedCode<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         one_of((
             BackticksFencedCode::parse.map(Self::from),
             TildesFencedCode::parse.map(Self::from),

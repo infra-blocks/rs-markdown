@@ -1,9 +1,8 @@
 use crate::{
     inline::link::DoubleQuotesLinkTitle,
     parse::{
-        ParseResult,
         input::Input,
-        parser::{Map, Parser, one_of},
+        parser::{Map, ParseResult, Parser, one_of},
         segment::link_title::{
             DoubleQuotesLinkTitleMultiSegments, DoubleQuotesLinkTitleSingleSegment,
         },
@@ -12,7 +11,7 @@ use crate::{
 };
 
 impl<'a> Parse<&'a str> for DoubleQuotesLinkTitle<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         one_of((
             DoubleQuotesLinkTitleSingleSegment::parse.map(Self::Single),
             DoubleQuotesLinkTitleMultiSegments::parse.map(Self::Multi),
