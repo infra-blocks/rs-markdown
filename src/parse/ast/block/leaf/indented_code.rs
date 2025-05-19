@@ -1,7 +1,8 @@
 use crate::{
     ast::IndentedCode,
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         segment::indented_code::{ContinuationSegments, IndentedCodeSegment},
         traits::Parse,
     },

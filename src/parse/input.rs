@@ -1,3 +1,5 @@
+use super::Parsable;
+
 pub enum ParseQuantity {
     /// The quantity of items parsed.
     Items(usize),
@@ -5,8 +7,6 @@ pub enum ParseQuantity {
     /// The quantity of bytes parsed.
     Bytes(usize),
 }
-
-pub type ParseResult<I, T> = Result<(I, T), I>;
 
 /// A trait to regroup different input types.
 ///
@@ -17,15 +17,12 @@ pub type ParseResult<I, T> = Result<(I, T), I>;
 /// quite cheap.
 pub trait Input
 where
-    Self: Sized + Clone,
+    Self: Parsable<Quantity = ParseQuantity> + Clone,
 {
     type Item;
 
     /// Returns whether the input is empty.
     fn is_empty(&self) -> bool;
-
-    /// Returns the input with the given quantity consumed.
-    fn consumed(&self, quantity: ParseQuantity) -> Self;
 
     /// Returns the first item of the input.
     ///
@@ -36,23 +33,6 @@ where
 
     /// Returns an iterator over the items of the input.
     fn items(&self) -> impl Iterator<Item = Self::Item>;
-
-    /// Returns a successful parse result, stripping the input of the given quantity parsed.
-    fn parsed<T>(self, quantity: ParseQuantity, value: T) -> ParseResult<Self, T>
-    where
-        T: Sized,
-    {
-        let remaining = self.consumed(quantity);
-        Ok((remaining, value))
-    }
-
-    /// Returns a failed parse result, returning the input untouched.
-    fn failed<T>(self) -> ParseResult<Self, T>
-    where
-        T: Sized,
-    {
-        Err(self)
-    }
 }
 
 trait StrInput<'a> {
@@ -93,15 +73,19 @@ impl<'a> StrInput<'a> for &'a str {
     }
 }
 
+impl Parsable for &'_ str {
+    type Quantity = ParseQuantity;
+
+    fn consume(self, quantity: Self::Quantity) -> Self {
+        &self[self.quantity_in_bytes(quantity)..]
+    }
+}
+
 impl<'a> Input for &'a str {
     type Item = &'a str;
 
     fn is_empty(&self) -> bool {
         str::is_empty(self)
-    }
-
-    fn consumed(&self, quantity: ParseQuantity) -> Self {
-        &self[self.quantity_in_bytes(quantity)..]
     }
 
     fn items(&self) -> impl Iterator<Item = Self::Item> {

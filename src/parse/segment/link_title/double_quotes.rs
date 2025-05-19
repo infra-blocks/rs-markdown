@@ -1,7 +1,8 @@
 use crate::{
     Segment, Segments,
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         parser::{Parser, ZeroToMany},
         traits::{NomParse, Parse},
         utils::is_blank_line,

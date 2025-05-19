@@ -1,5 +1,5 @@
 use super::{Parser, ParserMut, ParserOnce};
-use crate::parse::input::{Input, ParseResult};
+use crate::parse::{ParseResult, input::Input};
 
 pub trait OneToMany: Sized {
     fn one_to_many(self) -> OneToManyParser<Self>;

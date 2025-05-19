@@ -1,5 +1,5 @@
 use super::{Parser, ParserMut, ParserOnce};
-use crate::parse::input::{Input, ParseResult};
+use crate::parse::{ParseResult, input::Input};
 
 pub trait Map<F>: Sized {
     fn map(self, func: F) -> MapParser<Self, F>;
