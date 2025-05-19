@@ -1,7 +1,8 @@
 use crate::{
     ast::BackticksFencedCode,
     parse::{
-        input::{Input, ParseQuantity, ParseResult},
+        ParseResult,
+        input::{Input, ParseQuantity},
         parser::{Map, Parser, Validate},
         segment::fenced_code::{
             BackticksFencedCodeClosingSegment, BackticksFencedCodeOpeningSegment,

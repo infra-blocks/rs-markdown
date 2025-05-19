@@ -4,7 +4,8 @@ mod tildes;
 use crate::{
     ast::{BackticksFencedCode, FencedCode, TildesFencedCode},
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         parser::{Map, Parser, one_of},
         traits::Parse,
     },

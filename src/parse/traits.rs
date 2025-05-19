@@ -1,4 +1,7 @@
-use super::input::{Input, ParseQuantity, ParseResult};
+use super::{
+    input::{Input, ParseQuantity},
+    parse_result::ParseResult,
+};
 use nom::{
     IResult,
     error::{Error, ParseError},

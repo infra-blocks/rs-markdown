@@ -1,3 +1,5 @@
+use super::ParseResult;
+
 pub enum ParseQuantity {
     /// The quantity of items parsed.
     Items(usize),
@@ -5,8 +7,6 @@ pub enum ParseQuantity {
     /// The quantity of bytes parsed.
     Bytes(usize),
 }
-
-pub type ParseResult<I, T> = Result<(I, T), I>;
 
 /// A trait to regroup different input types.
 ///

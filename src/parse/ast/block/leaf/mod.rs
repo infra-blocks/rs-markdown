@@ -7,7 +7,8 @@ pub mod thematic_break;
 use crate::{
     ast::{AtxHeading, BlankLine, FencedCode, IndentedCode, Leaf, ThematicBreak},
     parse::{
-        input::{Input, ParseResult},
+        ParseResult,
+        input::Input,
         parser::{Map, Parser, one_of},
         traits::Parse,
     },
