@@ -1,9 +1,8 @@
 use crate::{
     inline::link::ParenthesesLinkTitle,
     parse::{
-        ParseResult,
         input::Input,
-        parser::{Map, Parser, one_of},
+        parser::{Map, ParseResult, Parser, one_of},
         segment::link_title::{
             ParenthesesLinkTitleMultiSegments, ParenthesesLinkTitleSingleSegment,
         },
@@ -12,7 +11,7 @@ use crate::{
 };
 
 impl<'a> Parse<&'a str> for ParenthesesLinkTitle<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         one_of((
             ParenthesesLinkTitleSingleSegment::parse.map(Self::Single),
             ParenthesesLinkTitleMultiSegments::parse.map(Self::Multi),

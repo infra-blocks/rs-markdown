@@ -1,9 +1,8 @@
 use crate::{
     Segment, Segments,
     parse::{
-        ParseResult,
         input::Input,
-        parser::{Parser, ZeroToMany},
+        parser::{ParseResult, Parser, ZeroToMany},
         traits::{NomParse, Parse},
         utils::is_blank_line,
     },
@@ -65,7 +64,7 @@ impl<'a> ParenthesesLinkTitleMultiSegments<'a> {
 }
 
 impl<'a> Parse<&'a str> for ParenthesesLinkTitleMultiSegments<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening) = ParenthesesLinkTitleOpeningSegment::parse(input)?;
         let (remaining, continuations) = ParenthesesLinkTitleContinuationSegment::parse
             .zero_to_many()

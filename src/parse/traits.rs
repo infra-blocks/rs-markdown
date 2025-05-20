@@ -1,6 +1,6 @@
 use super::{
-    ParseResult,
-    input::{Input, ParseQuantity},
+    input::Input,
+    parser::{Enumerator, ParseResult},
 };
 use nom::{
     IResult,
@@ -26,26 +26,33 @@ where
     Self: Sized,
 {
     /// Parse the input and return the remaining input and the parsed value.
-    fn parse<I: Input<Item = T>>(input: I) -> ParseResult<I, Self>;
+    fn parse<I: Input<T>>(input: I) -> ParseResult<I, Self>;
 }
 
 impl<'a, T> Parse<&'a str> for T
 where
     T: NomParse<'a>,
 {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
-        let segment = input.first().unwrap_or_default();
-        match Self::nom_parse::<Error<&str>>(segment) {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+        let mut enumerator = input.enumerate();
+        let Some((_, item)) = enumerator.next() else {
+            std::mem::drop(enumerator);
+            return Err(input);
+        };
+        match Self::nom_parse::<Error<&str>>(item) {
             Ok((remaining, parsed)) => {
                 if remaining.is_empty() {
-                    input.parsed(ParseQuantity::Items(1), parsed)
+                    let (_, remaining) = input.split_at(enumerator.next_index());
+                    Ok((remaining, parsed))
                 } else {
-                    let bytes_remaining = remaining.len();
-                    let bytes_consumed = segment.len() - bytes_remaining;
-                    input.parsed(ParseQuantity::Bytes(bytes_consumed), parsed)
+                    let (_, remaining) = input.split_at(input.index_of(remaining));
+                    Ok((remaining, parsed))
                 }
             }
-            Err(_) => input.failed(),
+            Err(_) => {
+                std::mem::drop(enumerator);
+                Err(input)
+            }
         }
     }
 }

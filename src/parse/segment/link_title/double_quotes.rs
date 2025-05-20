@@ -1,9 +1,8 @@
 use crate::{
     Segment, Segments,
     parse::{
-        ParseResult,
         input::Input,
-        parser::{Parser, ZeroToMany},
+        parser::{ParseResult, Parser, ZeroToMany},
         traits::{NomParse, Parse},
         utils::is_blank_line,
     },
@@ -65,7 +64,7 @@ impl<'a> DoubleQuotesLinkTitleMultiSegments<'a> {
 }
 
 impl<'a> Parse<&'a str> for DoubleQuotesLinkTitleMultiSegments<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening) = DoubleQuotesLinkTitleOpeningSegment::parse(input)?;
         let (remaining, continuations) = DoubleQuotesLinkTitleContinuationSegment::parse
             .zero_to_many()

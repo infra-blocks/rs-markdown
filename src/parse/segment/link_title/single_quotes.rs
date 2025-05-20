@@ -1,9 +1,8 @@
 use crate::{
     Segment, Segments,
     parse::{
-        ParseResult,
         input::Input,
-        parser::{Parser, ZeroToMany},
+        parser::{ParseResult, Parser, ZeroToMany},
         traits::{NomParse, Parse},
         utils::is_blank_line,
     },
@@ -65,7 +64,7 @@ impl<'a> SingleQuotesLinkTitleMultiSegments<'a> {
 }
 
 impl<'a> Parse<&'a str> for SingleQuotesLinkTitleMultiSegments<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening) = SingleQuotesLinkTitleOpeningSegment::parse(input)?;
         let (remaining, continuations) = SingleQuotesLinkTitleContinuationSegment::parse
             .zero_to_many()
@@ -389,7 +388,7 @@ mod utils {
         error::ParseError, multi::many0,
     };
 
-    /// Parses the input string to extract all characters that valid within a link title segment.
+    /// Parses the input string to extract all characters that are valid within a link title segment.
     ///
     /// It accepts any escape sequence, but rejects unescaped quotes and terminating backslashes
     /// (without a follow character). It also does not allow new lines or carriage returns. This

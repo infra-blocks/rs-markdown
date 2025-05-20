@@ -1,5 +1,5 @@
-use super::{Parser, ParserMut, ParserOnce};
-use crate::parse::{ParseResult, input::Input};
+use super::Parser;
+use crate::parse::parser::ParseResult;
 
 macro_rules! typed_crash {
     ($type: ty) => {
@@ -25,36 +25,11 @@ impl<O> CrashParser<O> {
     }
 }
 
-impl<I, O> Parser<I> for CrashParser<O>
-where
-    I: Input,
-{
+impl<I, O> Parser<I> for CrashParser<O> {
     type Output = O;
 
     fn parse(&self, _: I) -> ParseResult<I, Self::Output> {
         panic!("crash parser invoked!");
-    }
-}
-
-impl<I, O> ParserMut<I> for CrashParser<O>
-where
-    I: Input,
-{
-    type Output = O;
-
-    fn parse_mut(&mut self, input: I) -> ParseResult<I, Self::Output> {
-        self.parse(input)
-    }
-}
-
-impl<I, O> ParserOnce<I> for CrashParser<O>
-where
-    I: Input,
-{
-    type Output = O;
-
-    fn parse_once(self, input: I) -> ParseResult<I, Self::Output> {
-        self.parse(input)
     }
 }
 
@@ -85,35 +60,10 @@ impl<O> FailParser<O> {
     }
 }
 
-impl<I, O> Parser<I> for FailParser<O>
-where
-    I: Input,
-{
+impl<I, O> Parser<I> for FailParser<O> {
     type Output = O;
 
     fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
-        Err(input)
-    }
-}
-
-impl<I, O> ParserMut<I> for FailParser<O>
-where
-    I: Input,
-{
-    type Output = O;
-
-    fn parse_mut(&mut self, input: I) -> ParseResult<I, Self::Output> {
-        Err(input)
-    }
-}
-
-impl<I, O> ParserOnce<I> for FailParser<O>
-where
-    I: Input,
-{
-    type Output = O;
-
-    fn parse_once(self, input: I) -> ParseResult<I, Self::Output> {
         Err(input)
     }
 }

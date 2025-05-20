@@ -1,9 +1,8 @@
 use crate::{
     ast::BackticksFencedCode,
     parse::{
-        ParseResult,
-        input::{Input, ParseQuantity},
-        parser::{Map, Parser, Validate},
+        input::Input,
+        parser::{Enumerator, Map, ParseResult, Parser, Validate},
         segment::fenced_code::{
             BackticksFencedCodeClosingSegment, BackticksFencedCodeOpeningSegment,
         },
@@ -16,34 +15,34 @@ enum ContentOrClosingSegment<'a> {
     Closing(BackticksFencedCodeClosingSegment<'a>),
 }
 
-fn content_or_closing_segment<'a, I: Input<Item = &'a str>>(
+fn content_or_closing_segment<'a, I: Input<&'a str>>(
     opening: &BackticksFencedCodeOpeningSegment<'a>,
 ) -> impl Fn(I) -> ParseResult<I, ContentOrClosingSegment<'a>> {
     |input: I| {
         if input.is_empty() {
             return Err(input);
         }
+        println!("received input: {input:?}");
         match BackticksFencedCodeClosingSegment::parse
             .validate(|segment: &BackticksFencedCodeClosingSegment| segment.closes(opening))
             .map(ContentOrClosingSegment::Closing)
             .parse(input)
         {
-            Ok((remaning, closing)) => Ok((remaning, closing)),
+            Ok((remaining, closing)) => Ok((remaining, closing)),
             Err(input) => {
                 // If it's not a closing segment, then it's content. It's safe to unwrap because we have already
                 // checked that the input is not empty.
-                let segment = input.first().unwrap();
-                input.parsed(
-                    ParseQuantity::Items(1),
-                    ContentOrClosingSegment::Content(segment),
-                )
+                let mut enumerator = input.enumerate();
+                let (_, segment) = enumerator.next().unwrap();
+                let (_, remaining) = input.split_at(enumerator.next_index());
+                Ok((remaining, ContentOrClosingSegment::Content(segment)))
             }
         }
     }
 }
 
 impl<'a> Parse<&'a str> for BackticksFencedCode<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         let (mut remaining, opening) = BackticksFencedCodeOpeningSegment::parse(input)?;
         let mut content_segments = Vec::new();
         loop {

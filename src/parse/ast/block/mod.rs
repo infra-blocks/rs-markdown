@@ -4,15 +4,14 @@ pub mod leaf;
 use crate::{
     ast::{Block, Leaf},
     parse::{
-        ParseResult,
         input::Input,
-        parser::{Map, Parser},
+        parser::{Map, ParseResult, Parser},
         traits::Parse,
     },
 };
 
 impl<'a> Parse<&'a str> for Block<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         Leaf::parse.map(Block::Leaf).parse(input)
     }
 }

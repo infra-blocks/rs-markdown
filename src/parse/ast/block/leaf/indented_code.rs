@@ -1,15 +1,15 @@
 use crate::{
     ast::IndentedCode,
     parse::{
-        ParseResult,
         input::Input,
+        parser::ParseResult,
         segment::indented_code::{ContinuationSegments, IndentedCodeSegment},
         traits::Parse,
     },
 };
 
 impl<'a> Parse<&'a str> for IndentedCode<'a> {
-    fn parse<I: Input<Item = &'a str>>(input: I) -> ParseResult<I, Self> {
+    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening_segment) = IndentedCodeSegment::parse(input)?;
         match ContinuationSegments::parse(remaining) {
             Ok((remaining, continuation_segments)) => {

@@ -1,3 +1,5 @@
+use super::traits::Parse;
+use crate::parse::{Lines, parser::Enumerate};
 use std::fmt::Debug;
 
 macro_rules! test_parse_macros {
@@ -40,8 +42,6 @@ macro_rules! test_parse_macros {
                 }
     };
 }
-use super::{input::Input, traits::Parse};
-use crate::parse::Lines;
 pub(super) use test_parse_macros;
 
 #[cfg(test)]
@@ -49,7 +49,6 @@ pub trait StrictParse<'a>
 where
     Self: Sized + Debug,
 {
-    #[allow(dead_code)]
     fn strict_parse(input: &'a str) -> Self;
 }
 
