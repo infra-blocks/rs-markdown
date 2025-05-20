@@ -45,7 +45,7 @@ where
                     let (_, remaining) = input.split_at(enumerator.next_index());
                     Ok((remaining, parsed))
                 } else {
-                    let (_, remaining) = input.split_at(input.index_of(remaining));
+                    let (_, remaining) = input.split_at(input.subset_range(remaining).0);
                     Ok((remaining, parsed))
                 }
             }

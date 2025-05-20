@@ -29,9 +29,6 @@ pub trait Enumerate<T>: Indexable {
         EnumeratorImpl::new(self.items_indices(), self.last_index())
     }
     fn items_indices(&self) -> impl Iterator<Item = (Self::Index, T)>;
-    fn is_empty(&self) -> bool {
-        self.items_indices().next().is_none()
-    }
 }
 
 pub trait Enumerator<I, T>: Iterator<Item = (I, T)>
@@ -86,4 +83,20 @@ pub trait SplitAt: Indexable + Sized {
     fn split_at(&self, index: Self::Index) -> (Self, Self);
 }
 
+pub trait PrefixEnd<T>: Indexable {
+    /// If the input starts with the provided prefix, it will return the index immediately after.
+    ///
+    /// If the input does not start with the provided prefix, it will return None.
+    fn prefix_end(&self, tag: T) -> Option<Self::Index>;
+}
+
+pub trait SubsetRange<T>: Indexable {
+    /// Get the index of the element.
+    fn subset_range(&self, item: T) -> (Self::Index, Self::Index);
+}
+
 pub type ParseResult<I, T> = Result<(I, T), I>;
+
+pub trait IsEmpty {
+    fn is_empty(&self) -> bool;
+}
