@@ -1,5 +1,5 @@
 use crate::{
-    inline::link::DoubleQuotesLinkTitle,
+    ast::inline::link::DoubleQuotesLinkTitle,
     parse::{
         input::Input,
         parser::{Map, ParseResult, Parser, one_of},

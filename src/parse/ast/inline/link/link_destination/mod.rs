@@ -1,7 +1,9 @@
 mod bracketed;
 mod unbracketed;
 
-use crate::inline::link::{BracketedLinkDestination, LinkDestination, UnbracketedLinkDestination};
+use crate::ast::inline::link::{
+    BracketedLinkDestination, LinkDestination, UnbracketedLinkDestination,
+};
 use crate::parse::traits::NomParse;
 use nom::{IResult, Parser, branch::alt, error::ParseError};
 

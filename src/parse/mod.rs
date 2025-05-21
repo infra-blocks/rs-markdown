@@ -1,5 +1,4 @@
 pub mod ast;
-pub mod inline;
 pub mod input;
 mod lines;
 pub mod parser;

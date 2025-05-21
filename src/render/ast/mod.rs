@@ -1,7 +1,7 @@
 mod block;
 
 use super::display_html::DisplayHtml;
-use crate::ast::{LinkReferenceDefinition, Tree};
+use crate::ast::{Tree, block::LinkReferenceDefinition};
 
 impl DisplayHtml for Tree<'_> {
     fn display_html(

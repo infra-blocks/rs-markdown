@@ -1,5 +1,5 @@
 use crate::{
-    ast::TildesFencedCode,
+    ast::block::TildesFencedCode,
     parse::{
         input::Input,
         parser::{Enumerator, Map, ParseResult, Parser, Validate},

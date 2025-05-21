@@ -1,4 +1,4 @@
-use crate::{Segments, ast::IndentedCode, render::DisplayHtml};
+use crate::{Segments, ast::block::IndentedCode, render::DisplayHtml};
 
 trait PushUnindentedStr {
     fn push_unindented_str(&mut self, text: &str);

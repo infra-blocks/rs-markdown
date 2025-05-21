@@ -1,5 +1,5 @@
 use crate::{
-    ast::{FencedCode, LinkReferenceDefinition},
+    ast::block::{FencedCode, LinkReferenceDefinition},
     render::DisplayHtml,
 };
 

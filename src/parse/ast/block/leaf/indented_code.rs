@@ -1,5 +1,5 @@
 use crate::{
-    ast::IndentedCode,
+    ast::block::IndentedCode,
     parse::{
         input::Input,
         parser::ParseResult,
@@ -34,7 +34,7 @@ mod test {
     mod parse {
         use super::*;
         use crate::{
-            ast::BlankLine,
+            ast::block::BlankLine,
             parse::{
                 segment::indented_code::IndentedCodeOrBlankLineSegment,
                 test_utils::{StrictParse, test_parse_macros},

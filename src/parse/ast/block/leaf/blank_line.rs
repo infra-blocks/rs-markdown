@@ -1,4 +1,4 @@
-use crate::{ast::BlankLine, parse::traits::NomParse};
+use crate::{ast::block::BlankLine, parse::traits::NomParse};
 use nom::{
     Parser,
     branch::alt,

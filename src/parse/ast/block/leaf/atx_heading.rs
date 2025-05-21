@@ -1,5 +1,5 @@
 use crate::{
-    ast::AtxHeading,
+    ast::block::AtxHeading,
     parse::{
         traits::NomParse,
         utils::{indented_by_less_than_4, is_char, line},

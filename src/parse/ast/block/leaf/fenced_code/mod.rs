@@ -2,7 +2,7 @@ mod backticks;
 mod tildes;
 
 use crate::{
-    ast::{BackticksFencedCode, FencedCode, TildesFencedCode},
+    ast::block::{BackticksFencedCode, FencedCode, TildesFencedCode},
     parse::{
         input::Input,
         parser::{Map, ParseResult, Parser, one_of},
