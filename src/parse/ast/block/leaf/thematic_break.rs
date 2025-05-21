@@ -1,67 +1,59 @@
 use crate::ast::ThematicBreak;
-use crate::parse::traits::NomParse;
-use crate::parse::utils::{indented_by_less_than_4, is_one_of, line};
-use nom::IResult;
-use nom::error::ParseError;
-use nom::{
-    Parser,
-    branch::alt,
-    bytes::complete::{tag, take_while},
-    character::complete::space0,
-    combinator::{consumed, eof, recognize},
+use crate::parse::parser::{
+    Map, ParseResult, Parser, is_one_of, one_of, recognize, tag, take_while,
 };
+use crate::parse::parser_utils::{indented_by_less_than_4, line_ending_or_eof, space_or_tab};
+use crate::parse::traits::ParseLine;
 
-// TODO: utils module and use parse style (don't return parsers, return results).
-fn thematic_break<'a, Error: ParseError<&'a str>>()
--> impl Parser<&'a str, Output = &'a str, Error = Error> {
+pub fn thematic_break<'a>(input: &'a str) -> ParseResult<&'a str, ThematicBreak<'a>> {
     recognize((
         indented_by_less_than_4,
-        alt((asterisks(), hyphens(), underscores())),
-        eof,
+        one_of((asterisks, hyphens, underscores)),
+        line_ending_or_eof,
     ))
+    .map(ThematicBreak::new)
+    .parse(input)
 }
 
-fn asterisks<'a, Error: ParseError<&'a str>>()
--> impl Parser<&'a str, Output = &'a str, Error = Error> {
+fn asterisks(input: &str) -> ParseResult<&str, &str> {
     recognize((
         tag("*"),
-        space0,
+        space_or_tab,
         tag("*"),
-        space0,
+        space_or_tab,
         tag("*"),
         take_while(is_one_of(&['*', ' ', '\t'])),
     ))
+    .parse(input)
 }
 
-fn hyphens<'a, Error: ParseError<&'a str>>()
--> impl nom::Parser<&'a str, Output = &'a str, Error = Error> {
+fn hyphens(input: &str) -> ParseResult<&str, &str> {
     recognize((
         tag("-"),
-        space0,
+        space_or_tab,
         tag("-"),
-        space0,
+        space_or_tab,
         tag("-"),
         take_while(is_one_of(&['-', ' ', '\t'])),
     ))
+    .parse(input)
 }
 
-fn underscores<'a, Error: ParseError<&'a str>>()
--> impl Parser<&'a str, Output = &'a str, Error = Error> {
+fn underscores(input: &str) -> ParseResult<&str, &str> {
     recognize((
         tag("_"),
-        space0,
+        space_or_tab,
         tag("_"),
-        space0,
+        space_or_tab,
         tag("_"),
         take_while(is_one_of(&['_', ' ', '\t'])),
     ))
+    .parse(input)
 }
 
-impl<'a> NomParse<'a> for ThematicBreak<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        consumed(line.and_then(thematic_break()))
-            .map(|(segment, _)| Self::new(segment))
-            .parse(input)
+impl<'a> ParseLine<'a> for ThematicBreak<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        thematic_break(input)
     }
 }
 
