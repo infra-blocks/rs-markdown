@@ -1,5 +1,5 @@
 use super::traits::Parse;
-use crate::parse::{Lines, parser::Enumerate};
+use crate::parse::{Lines, parser::IsEmpty};
 use std::fmt::Debug;
 
 macro_rules! test_parse_macros {

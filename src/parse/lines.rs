@@ -1,6 +1,6 @@
 use super::{
-    input::{IndexOf, Input},
-    parser::{Enumerate, Indexable, SplitAt},
+    input::Input,
+    parser::{Enumerate, Indexable, IsEmpty, SplitAt, SubsetRange},
 };
 use std::str::SplitInclusive;
 
@@ -44,16 +44,9 @@ impl<'a> Enumerate<&'a str> for Lines<'a> {
     }
 }
 
-impl<'a> IndexOf<&'a str> for Lines<'a> {
-    fn index_of(&self, item: &'a str) -> Self::Index {
-        let source_start = self.source.as_ptr() as usize;
-        let source_end = source_start + self.len();
-        let item_start = item.as_ptr() as usize;
-        let item_end = item_start + item.len();
-        if item_start < source_start || item_end > source_end {
-            panic!("item {item} not part of this input {self:?}");
-        }
-        item_start - source_start
+impl<'a> SubsetRange<&'a str> for Lines<'a> {
+    fn subset_range(&self, item: &'a str) -> (Self::Index, Self::Index) {
+        self.source.subset_range(item)
     }
 }
 
@@ -61,6 +54,12 @@ impl SplitAt for Lines<'_> {
     fn split_at(&self, index: Self::Index) -> (Self, Self) {
         let (left, right) = self.source.split_at(index);
         (left.into(), right.into())
+    }
+}
+
+impl IsEmpty for Lines<'_> {
+    fn is_empty(&self) -> bool {
+        self.source.is_empty()
     }
 }
 
