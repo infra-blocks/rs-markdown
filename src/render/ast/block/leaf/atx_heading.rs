@@ -1,6 +1,6 @@
 use crate::{
     Segment,
-    ast::{AtxHeading, LinkReferenceDefinition},
+    ast::block::{AtxHeading, LinkReferenceDefinition},
     render::display_html::DisplayHtml,
 };
 

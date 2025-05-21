@@ -1,5 +1,5 @@
 use crate::{
-    inline::link::ParenthesesLinkTitle,
+    ast::inline::link::ParenthesesLinkTitle,
     parse::{
         input::Input,
         parser::{Map, ParseResult, Parser, one_of},

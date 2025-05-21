@@ -1,5 +1,5 @@
 use crate::{
-    inline::link::LinkLabel,
+    ast::inline::link::LinkLabel,
     parse::{traits::NomParse, utils::escaped_sequence},
 };
 use nom::{

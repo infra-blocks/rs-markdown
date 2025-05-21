@@ -3,7 +3,9 @@ mod parentheses;
 mod single_quotes;
 
 use crate::{
-    inline::link::{DoubleQuotesLinkTitle, LinkTitle, ParenthesesLinkTitle, SingleQuotesLinkTitle},
+    ast::inline::link::{
+        DoubleQuotesLinkTitle, LinkTitle, ParenthesesLinkTitle, SingleQuotesLinkTitle,
+    },
     parse::{
         input::Input,
         parser::{Map, ParseResult, Parser, one_of},

@@ -5,7 +5,7 @@ pub mod indented_code;
 pub mod thematic_break;
 
 use crate::{
-    ast::{AtxHeading, BlankLine, FencedCode, IndentedCode, Leaf, ThematicBreak},
+    ast::block::{AtxHeading, BlankLine, FencedCode, IndentedCode, Leaf, ThematicBreak},
     parse::{
         input::Input,
         parser::{Map, ParseResult, Parser, one_of},

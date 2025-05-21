@@ -1,9 +1,9 @@
-mod block;
-
-pub use block::*;
+pub mod block;
+pub mod inline;
 
 use super::{Segments, ToHtml};
 use crate::render::DisplayHtml;
+use block::{Block, Leaf, LinkReferenceDefinition};
 use std::iter::FusedIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

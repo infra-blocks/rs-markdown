@@ -2,7 +2,7 @@ pub mod container;
 pub mod leaf;
 
 use crate::{
-    ast::{Block, Leaf},
+    ast::block::{Block, Leaf},
     parse::{
         input::Input,
         parser::{Map, ParseResult, Parser},

@@ -1,4 +1,4 @@
-use crate::inline::link::UnbracketedLinkDestination;
+use crate::ast::inline::link::UnbracketedLinkDestination;
 use crate::parse::{
     traits::NomParse,
     utils::{parentheseses_balance, take_one},

@@ -1,5 +1,3 @@
-use super::traits::NomParse;
-use crate::ast::BlankLine;
 use nom::{
     IResult, Parser,
     branch::alt,
@@ -24,6 +22,8 @@ macro_rules! alias {
         }
     };
 }
+use super::traits::NomParse;
+use crate::ast::block::BlankLine;
 #[cfg(test)]
 pub(super) use alias;
 

@@ -1,4 +1,4 @@
-use crate::inline::link::BracketedLinkDestination;
+use crate::ast::inline::link::BracketedLinkDestination;
 use crate::parse::{traits::NomParse, utils::escaped_sequence};
 use nom::{
     IResult, Parser, branch::alt, bytes::complete::is_not, character::complete::char,

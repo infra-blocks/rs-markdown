@@ -1,7 +1,7 @@
 use super::DisplayHtml;
 use crate::{
     Segment,
-    ast::{LinkReferenceDefinition, ThematicBreak},
+    ast::block::{LinkReferenceDefinition, ThematicBreak},
 };
 
 impl DisplayHtml for ThematicBreak<'_> {

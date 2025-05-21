@@ -1,7 +1,7 @@
 // TODO: split into many modules.
 use crate::{
     Segment,
-    ast::BlankLine,
+    ast::block::BlankLine,
     parse::{
         input::Input,
         parser::{And, OneToMany, ParseResult, Parser, ZeroToMany},
