@@ -1,5 +1,3 @@
-use super::traits::NomParse;
-use crate::ast::block::BlankLine;
 use nom::{
     IResult, Parser,
     branch::alt,
@@ -9,7 +7,7 @@ use nom::{
         complete::{char, line_ending, space0},
     },
     combinator::{recognize, rest, verify},
-    error::{Error, ParseError},
+    error::ParseError,
     sequence::terminated,
 };
 
@@ -33,16 +31,6 @@ pub fn indented_by_less_than_4<'a, Error: ParseError<&'a str>>(
         !spaces.contains("\t") && spaces.len() < 4
     })
     .parse(input)
-}
-
-/// Returns whether the whole segment can be used to build a [BlankLineSegment].
-///
-/// It will inevitably return false if the input contains more than one line.
-pub fn is_blank_line(line: &str) -> bool {
-    match BlankLine::nom_parse::<Error<&str>>(line) {
-        Ok((remaining, _)) => remaining.is_empty(),
-        Err(_) => false,
-    }
 }
 
 /// Returns a predicate that returns whether the character received is the
@@ -199,50 +187,6 @@ mod test {
             let (remaining, parsed) = indented_by_less_than_4::<Error<&str>>("   abc").unwrap();
             assert_eq!(remaining, "abc");
             assert_eq!(parsed, "   ");
-        }
-    }
-
-    mod is_blank_line {
-        use super::*;
-
-        #[test]
-        fn should_return_false_with_empty_string() {
-            assert!(!is_blank_line(""));
-        }
-
-        #[test]
-        fn should_return_false_for_string_with_one_none_whitespace_character() {
-            assert!(!is_blank_line(" \ta\n"));
-        }
-
-        #[test]
-        fn should_return_false_for_2_blank_lines() {
-            assert!(!is_blank_line("\n\n"));
-        }
-
-        #[test]
-        fn should_return_false_for_a_blank_line_followed_by_a_character() {
-            assert!(!is_blank_line("\nabc"));
-        }
-
-        #[test]
-        fn should_return_true_with_space() {
-            assert!(is_blank_line(" "));
-        }
-
-        #[test]
-        fn should_return_true_with_tab() {
-            assert!(is_blank_line("\t"));
-        }
-
-        #[test]
-        fn should_return_true_for_carriage_return() {
-            assert!(is_blank_line("\r\n"));
-        }
-
-        #[test]
-        fn shoud_return_true_for_newline() {
-            assert!(is_blank_line("\n"));
         }
     }
 

@@ -2,8 +2,8 @@ use crate::{
     Segment, Segments,
     parse::{
         input::Input,
+        parser_utils::is_blank_line,
         traits::{NomParse, Parse},
-        utils::is_blank_line,
     },
 };
 use nom::{
