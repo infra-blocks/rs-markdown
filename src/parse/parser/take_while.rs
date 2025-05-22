@@ -1,4 +1,4 @@
-use super::{Enumerate, ParseResult, Parser, SplitAt};
+use super::{Enumerate, ParseResult, Parser, SplitAt, utils::Reverse};
 
 pub fn take_while<E, F>(predicate: F) -> TakeWhileParser<E, F> {
     TakeWhileParser::new(predicate)
@@ -29,13 +29,11 @@ where
     fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
         for (index, item) in input.enumerate() {
             if !(self.predicate)(item) {
-                let (parsed, remaining) = input.split_at(index);
-                return Ok((remaining, parsed));
+                return Ok(input.split_at(index).reverse());
             }
         }
         // If we make it here, we ran out of input and all items succeeded the predicate check.
-        let (parsed, remaining) = input.split_at(input.last_index());
-        Ok((remaining, parsed))
+        Ok(input.split_at(input.last_index()).reverse())
     }
 }
 

@@ -1,4 +1,4 @@
-use super::{Enumerate, Enumerator, Parser, SplitAt};
+use super::{Enumerate, Enumerator, Parser, SplitAt, utils::Reverse};
 use crate::parse::parser::ParseResult;
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -36,8 +36,7 @@ where
         while let Some((_, _)) = enumerate.next() {
             items_count += 1;
             if items_count == self.count {
-                let (parsed, remaining) = input.split_at(enumerate.next_index());
-                return Ok((remaining, parsed));
+                return Ok(input.split_at(enumerate.next_index()).reverse());
             }
         }
         // If we make it here, we ran out of input.

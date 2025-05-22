@@ -1,4 +1,4 @@
-use super::{IsEmpty, Parser, SplitAt, SubsetRange};
+use super::{IsEmpty, Parser, SplitAt, SubsetRange, utils::Reverse};
 use crate::parse::parser::ParseResult;
 
 pub trait Recognize: Sized {
@@ -39,8 +39,7 @@ where
         if remaining.is_empty() {
             return Ok((remaining, input));
         }
-        let (parsed, remaining) = input.split_at(input.subset_range(remaining).0);
-        Ok((remaining, parsed))
+        Ok(input.split_at(input.subset_range(remaining).0).reverse())
     }
 }
 

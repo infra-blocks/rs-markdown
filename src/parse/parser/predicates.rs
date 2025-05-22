@@ -1,4 +1,6 @@
 /// Returns a predicate that is true when the value matches one of the provided ones.
+///
+/// The reverse of [is_none_of].
 pub fn is_one_of<T: PartialEq>(values: &[T]) -> impl Fn(T) -> bool {
     move |i| values.contains(&i)
 }
@@ -31,6 +33,9 @@ mod test {
             assert!(predicate("a"));
             assert!(predicate("b"));
             assert!(predicate("c"));
+            assert!(!predicate("d"));
+            assert!(!predicate("e"));
+            assert!(!predicate("f"));
         }
     }
 }

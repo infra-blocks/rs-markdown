@@ -95,8 +95,8 @@ pub trait SubsetRange<T>: Indexable {
     fn subset_range(&self, item: T) -> (Self::Index, Self::Index);
 }
 
-pub type ParseResult<I, T> = Result<(I, T), I>;
-
 pub trait IsEmpty {
     fn is_empty(&self) -> bool;
 }
+
+pub type ParseResult<I, T> = Result<(I, T), I>;
