@@ -1,41 +1,41 @@
-use super::Parser;
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
+use crate::Parser;
 
-pub trait ZeroToMany: Sized {
-    fn zero_to_many(self) -> ZeroToManyParser<Self>;
+pub trait OneToMany: Sized {
+    fn one_to_many(self) -> OneToManyParser<Self>;
 }
 
-impl<T> ZeroToMany for T {
-    fn zero_to_many(self) -> ZeroToManyParser<Self> {
-        zero_to_many(self)
+impl<T> OneToMany for T {
+    fn one_to_many(self) -> OneToManyParser<Self> {
+        one_to_many(self)
     }
 }
 
-pub fn zero_to_many<T>(parser: T) -> ZeroToManyParser<T> {
-    ZeroToManyParser::new(parser)
+pub fn one_to_many<T>(parser: T) -> OneToManyParser<T> {
+    OneToManyParser::new(parser)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ZeroToManyParser<P> {
+pub struct OneToManyParser<P> {
     parser: P,
 }
 
-impl<P> ZeroToManyParser<P> {
+impl<P> OneToManyParser<P> {
     fn new(parser: P) -> Self {
         Self { parser }
     }
 }
 
-impl<I, P> Parser<I> for ZeroToManyParser<P>
+impl<I, P> Parser<I> for OneToManyParser<P>
 where
     P: Parser<I>,
 {
     type Output = Vec<P::Output>;
 
     fn parse(&self, input: I) -> ParseResult<I, Vec<P::Output>> {
-        let mut remaining = input;
-        let mut results = Vec::new();
-
+        let first_result = self.parser.parse(input)?;
+        let mut remaining = first_result.0;
+        let mut results = vec![first_result.1];
         let remaining = loop {
             match self.parser.parse(remaining) {
                 Ok((next_remaining, parsed)) => {
@@ -53,30 +53,26 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::{
-        parser::{take, typed_fail},
-        utils::alias,
-    };
+    use crate::{take, typed_fail, utils::alias};
 
-    alias!(fail, typed_fail!(&'static str));
+    alias!(fail, typed_fail![&'static str]);
 
     #[test]
-    fn test_should_return_empty_array_on_failure() {
-        let parser = fail!().zero_to_many();
-        let result = parser.parse("test1234");
-        assert_eq!(Ok(("test1234", vec![])), result);
+    fn test_should_fail_if_cannot_parse_one() {
+        let parser = fail!().one_to_many();
+        assert_eq!(Err("test1234"), parser.parse("test1234"));
     }
 
     #[test]
     fn test_should_succeed_if_it_can_parse_one() {
-        let parser = take(4).zero_to_many();
+        let parser = take(4).one_to_many();
         let result = parser.parse("test12");
         assert_eq!(Ok(("12", vec!["test"])), result);
     }
 
     #[test]
     fn test_should_return_as_many_values_as_possible() {
-        let parser = take(4).zero_to_many();
+        let parser = take(4).one_to_many();
         let result = parser.parse("test123456");
         assert_eq!(Ok(("56", vec!["test", "1234"])), result);
     }

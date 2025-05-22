@@ -1,5 +1,5 @@
 use super::{Or, Parser};
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
 
 pub fn one_of<L>(parsers: L) -> OneOfParser<L> {
     OneOfParser::new(parsers)
@@ -87,10 +87,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::{
-        parser::{take, typed_crash, typed_fail},
-        utils::alias,
-    };
+    use crate::{take, typed_crash, typed_fail, utils::alias};
 
     alias!(fail, typed_fail![&'static str]);
     alias!(crash, typed_crash![&'static str]);

@@ -1,3 +1,5 @@
+use super::traits::NomParse;
+use crate::ast::block::BlankLine;
 use nom::{
     IResult, Parser,
     branch::alt,
@@ -10,22 +12,6 @@ use nom::{
     error::{Error, ParseError},
     sequence::terminated,
 };
-
-// TODO: should have that in a utility crate.
-#[cfg(test)]
-macro_rules! alias {
-    ($alias:ident, $expression:expr) => {
-        macro_rules! $alias {
-            () => {
-                $expression
-            };
-        }
-    };
-}
-use super::traits::NomParse;
-use crate::ast::block::BlankLine;
-#[cfg(test)]
-pub(super) use alias;
 
 /// Parses any escaped character sequence.
 ///

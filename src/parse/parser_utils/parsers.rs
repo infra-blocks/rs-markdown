@@ -1,5 +1,5 @@
 use super::is_space_or_tab;
-use crate::parse::parser::{ParseResult, Parser, one_of, tag, take_while, validate};
+use parser::{ParseResult, Parser, one_of, tag, take_while, validate};
 
 /// Parses and consumes all spaces and tabs at the beginning of the input,
 /// then verifies that the amount of whitespace is at least 4.

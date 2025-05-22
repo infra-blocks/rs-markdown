@@ -1,9 +1,9 @@
-use super::Parser;
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
+use crate::Parser;
 
 macro_rules! typed_crash {
     ($type: ty) => {
-        crate::parse::parser::typed_crash_parser::<$type>()
+        crate::typed_crash_parser::<$type>()
     };
 }
 pub(super) use typed_crash;
@@ -35,7 +35,7 @@ impl<I, O> Parser<I> for CrashParser<O> {
 
 macro_rules! typed_fail {
     ($type: ty) => {
-        crate::parse::parser::typed_fail_parser::<$type>()
+        crate::typed_fail_parser::<$type>()
     };
 }
 pub(super) use typed_fail;

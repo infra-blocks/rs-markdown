@@ -1,5 +1,5 @@
-use super::Parser;
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
+use crate::Parser;
 
 pub trait Or<R>: Sized {
     fn or(self, right: R) -> OrParser<Self, R>;
@@ -45,10 +45,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::{
-        parser::{take, typed_crash, typed_fail},
-        utils::alias,
-    };
+    use crate::{take, typed_crash, typed_fail, utils::alias};
 
     alias!(fail, typed_fail![&'static str]);
     alias!(crash, typed_crash![&'static str]);

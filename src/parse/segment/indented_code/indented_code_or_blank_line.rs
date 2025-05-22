@@ -1,12 +1,6 @@
 use super::IndentedCodeSegment;
-use crate::{
-    Segment,
-    ast::block::BlankLine,
-    parse::{
-        parser::{Map, ParseResult, Parser, one_of},
-        traits::ParseLine,
-    },
-};
+use crate::{Segment, ast::block::BlankLine, parse::traits::ParseLine};
+use parser::{Map, ParseResult, Parser, one_of};
 
 /// An enum representing either an indented code segment or a blank line segment.
 ///

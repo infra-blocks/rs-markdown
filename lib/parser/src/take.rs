@@ -1,5 +1,5 @@
 use super::{Enumerate, Enumerator, Parser, SplitAt, utils::Reverse};
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
 use std::{fmt::Debug, marker::PhantomData};
 
 pub fn take<T>(count: usize) -> TakeParser<T> {

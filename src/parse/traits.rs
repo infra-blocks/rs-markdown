@@ -1,11 +1,9 @@
-use super::{
-    input::Input,
-    parser::{Enumerator, ParseResult},
-};
+use super::input::Input;
 use nom::{
     IResult,
     error::{Error, ParseError},
 };
+use parser::{Enumerator, ParseResult};
 
 /// The trait formalizing the parsing interface of structs.
 ///

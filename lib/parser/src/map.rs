@@ -1,5 +1,5 @@
-use super::Parser;
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
+use crate::Parser;
 
 pub trait Map<F>: Sized {
     fn map(self, func: F) -> MapParser<Self, F>;
@@ -43,7 +43,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::parser::take;
+    use crate::take;
 
     #[test]
     fn test_should_return_mapped_value_upon_success() {

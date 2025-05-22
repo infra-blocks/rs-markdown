@@ -1,5 +1,4 @@
 use super::traits::Parse;
-use crate::parse::{Lines, parser::IsEmpty};
 use std::fmt::Debug;
 
 macro_rules! test_parse_macros {
@@ -42,6 +41,8 @@ macro_rules! test_parse_macros {
                 }
     };
 }
+use crate::parse::Lines;
+use parser::IsEmpty;
 pub(super) use test_parse_macros;
 
 #[cfg(test)]

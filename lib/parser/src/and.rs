@@ -1,5 +1,4 @@
-use super::Parser;
-use crate::parse::parser::ParseResult;
+use crate::{ParseResult, Parser};
 
 pub trait And<R>: Sized {
     fn and(self, right: R) -> AndParser<Self, R>;
@@ -48,10 +47,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::{
-        parser::{Parser, take, typed_fail},
-        utils::alias,
-    };
+    use crate::{take, typed_fail, utils::alias};
 
     alias!(fail, typed_fail![&'static str]);
 

@@ -5,3 +5,7 @@ edition = "2024"
 
 [dependencies]
 nom = "8.0.0"
+parser = { path = "lib/parser" }
+
+[workspace]
+members = ["lib/parser"]
