@@ -1,4 +1,4 @@
-use super::{Parser, PrefixEnd, SplitAt};
+use super::{Parser, PrefixEnd, SplitAt, utils::Reverse};
 use crate::parse::parser::ParseResult;
 
 pub fn tag<T>(tag: T) -> TagParser<T> {
@@ -25,10 +25,7 @@ where
 
     fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
         match input.prefix_end(self.tag.clone()) {
-            Some(index) => {
-                let (parsed, remaining) = input.split_at(index);
-                Ok((remaining, parsed))
-            }
+            Some(index) => Ok(input.split_at(index).reverse()),
             None => Err(input),
         }
     }
