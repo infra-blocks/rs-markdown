@@ -1,15 +1,12 @@
 use super::is_space_or_tab;
-use parser::{ParseResult, Parser, one_of, tag, take_while, validate};
+use parser::{ParseResult, Parser, Validate, one_of, tag, take_while, validate};
 
 /// Parses and consumes all spaces and tabs at the beginning of the input,
 /// then verifies that the amount of whitespace is at least 4.
 ///
 /// This space scoring technique is described in the [CommonMark spec](https://spec.commonmark.org/0.31.2/#tabs).
 pub fn indented_by_at_least_4(input: &str) -> ParseResult<&str, &str> {
-    validate(take_while(is_space_or_tab), |spaces: &&str| {
-        spaces.contains("\t") || spaces.len() >= 4
-    })
-    .parse(input)
+    validate(space_or_tab, |s: &&str| s.contains("\t") || s.len() >= 4).parse(input)
 }
 
 /// Parses and consumes all spaces and tabs at the beginning of the input,
@@ -17,10 +14,7 @@ pub fn indented_by_at_least_4(input: &str) -> ParseResult<&str, &str> {
 ///
 /// Tabs are not allowed, as they count for 4 spaces. See here [CommonMark spec](https://spec.commonmark.org/0.31.2/#tabs).
 pub fn indented_by_less_than_4(input: &str) -> ParseResult<&str, &str> {
-    validate(take_while(is_space_or_tab), |spaces: &&str| {
-        !spaces.contains("\t") && spaces.len() < 4
-    })
-    .parse(input)
+    validate(space_or_tab, |s: &&str| !s.contains("\t") && s.len() < 4).parse(input)
 }
 
 /// Consumes any amount of spaces or tabs.
@@ -29,6 +23,16 @@ pub fn indented_by_less_than_4(input: &str) -> ParseResult<&str, &str> {
 /// return an empty string as parsed.
 pub fn space_or_tab(input: &str) -> ParseResult<&str, &str> {
     take_while(is_space_or_tab).parse(input)
+}
+
+/// Consumes at least one space or tab.
+///
+/// The parser will fail if the input does not start with a space or a tab,
+/// and will consume as many spaces or tabs as possible.
+pub fn at_least_1_space_or_tab(input: &str) -> ParseResult<&str, &str> {
+    take_while(is_space_or_tab)
+        .validate(|s: &&str| !s.is_empty())
+        .parse(input)
 }
 
 /// Consumes a line ending, which can be either `\n` or `\r\n`.
@@ -143,6 +147,28 @@ mod test {
         #[test]
         fn should_work_with_spaces_or_tabs() {
             assert_eq!(Ok(("toto", "  \t\t ")), space_or_tab("  \t\t toto"));
+        }
+    }
+
+    mod at_least_1_space_or_tab {
+        use super::*;
+
+        #[test]
+        fn should_fail_with_empty_string() {
+            assert!(at_least_1_space_or_tab("").is_err());
+        }
+
+        #[test]
+        fn should_fail_with_non_whitespace_character() {
+            assert!(at_least_1_space_or_tab("a").is_err());
+        }
+
+        #[test]
+        fn should_work_with_spaces_or_tabs() {
+            assert_eq!(
+                Ok(("toto", "  \t\t ")),
+                at_least_1_space_or_tab("  \t\t toto")
+            );
         }
     }
 

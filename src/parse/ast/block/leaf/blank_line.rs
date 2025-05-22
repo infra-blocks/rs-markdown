@@ -1,17 +1,24 @@
-use crate::{ast::block::BlankLine, parse::traits::NomParse};
-use nom::{
-    Parser,
-    branch::alt,
-    character::complete::{line_ending, space0, space1},
-    combinator::{consumed, eof},
-    error::ParseError,
+use crate::{
+    ast::block::BlankLine,
+    parse::{
+        parser_utils::{at_least_1_space_or_tab, eof, line_ending, space_or_tab},
+        traits::ParseLine,
+    },
 };
+use parser::{Map, ParseResult, Parser, one_of, recognize};
 
-impl<'a> NomParse<'a> for BlankLine<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> nom::IResult<&'a str, Self, Error> {
-        consumed(alt(((space0, line_ending), (space1, eof))))
-            .map(|(segment, _)| Self::new(segment))
-            .parse(input)
+pub fn blank_line<'a>(input: &'a str) -> ParseResult<&'a str, BlankLine<'a>> {
+    recognize(one_of((
+        (space_or_tab, line_ending),
+        (at_least_1_space_or_tab, eof),
+    )))
+    .map(BlankLine::new)
+    .parse(input)
+}
+
+impl<'a> ParseLine<'a> for BlankLine<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        blank_line(input)
     }
 }
 
