@@ -3,6 +3,10 @@ use crate::parse::parser_utils::{indented_by_less_than_4, line_ending_or_eof, sp
 use crate::parse::traits::ParseLine;
 use parser::{Map, ParseResult, Parser, is_one_of, one_of, recognize, tag, take_while};
 
+// TODO: split ThematicBreak into an enum with three variants:
+// - Asterisks
+// - Hyphens
+// - Underscores
 pub fn thematic_break<'a>(input: &'a str) -> ParseResult<&'a str, ThematicBreak<'a>> {
     recognize((
         indented_by_less_than_4,

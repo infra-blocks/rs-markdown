@@ -1,44 +1,36 @@
 use crate::{
     ast::block::AtxHeading,
     parse::{
-        traits::NomParse,
-        utils::{indented_by_less_than_4, is_char, line},
+        parser_utils::{at_least_1_space_or_tab, indented_by_less_than_4, line_ending_or_eof},
+        traits::ParseLine,
     },
 };
-use nom::{
-    IResult, Parser, bytes::complete::take_while_m_n, character::complete::space1,
-    combinator::consumed, error::ParseError, sequence::preceded,
-};
+use parser::{Map, ParseResult, Parser, consumed, is, one_of, recognize, rest, take_while};
 
-impl<'a> NomParse<'a> for AtxHeading<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        consumed(line.and_then(parts()))
-            .map(|(text, (level, title))| Self::new(text, title, level))
-            .parse(input)
-    }
+pub fn atx_heading(input: &str) -> ParseResult<&str, AtxHeading> {
+    consumed((indented_by_less_than_4, hashes, title))
+        .map(|(segment, (_, level, title))| AtxHeading::new(segment, title, level))
+        .parse(input)
 }
 
-// TODO: use parse style syntax on the utility functions underneath and move to internal utils module.
-
-/// Parses the parts of the ATX heading segment.
-///
-/// The parts are made of the opening sequence's length and the title.
-/// The length will be between 1 and 6, inclusively and the title may
-/// or may not be empty.
-fn parts<'a, Error: ParseError<&'a str>>()
--> impl Parser<&'a str, Output = (u8, &'a str), Error = Error> {
-    preceded(indented_by_less_than_4, (opening_sequence(), parse_title))
+impl<'a> ParseLine<'a> for AtxHeading<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        atx_heading(input)
+    }
 }
 
 /// Parses the opening sequence and returns the amount of hashes found, which
 /// will be between 1 and 6.
 ///
 /// Note that if there are more than 6 hashes, this function does not fail.
-fn opening_sequence<'a, Error: ParseError<&'a str>>()
--> impl Parser<&'a str, Output = u8, Error = Error> {
-    take_while_m_n(1, 6, is_char('#')).map(|hashes: &str| {
-        u8::try_from(hashes.len()).expect("unexpected hashes length greater than u8")
-    })
+fn hashes(input: &str) -> ParseResult<&str, u8> {
+    take_while(is('#'))
+        .at_least(1)
+        .at_most(6)
+        .map(|hashes: &str| {
+            u8::try_from(hashes.len()).expect("unexpected hashes length greater than u8")
+        })
+        .parse(input)
 }
 
 /// Parses the title from the remaining input.
@@ -47,32 +39,28 @@ fn opening_sequence<'a, Error: ParseError<&'a str>>()
 /// starts immediately after it.
 ///
 /// A title will be invalid if it is not empty and does not start with a whitespace character.
-fn parse_title<'a, Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, Error> {
-    if input.is_empty() {
-        return Ok(("", ""));
-    }
-    // The title sequence has to start with at least one space character, otherwise we don't have a valid
-    // ATX heading.
-    let (input, _) = space1(input)?;
-    // Now that we know we start with a whitespace, we can remove the trailing ones.
-    let input = input.trim_end();
-    // The title is everything until the end of the line or a closing sequence.
-    match input.rfind([' ', '\t']) {
-        Some(last_space_index) => {
-            // If the last word is a closing sequence, then the title is everything up until the last word, and trimmed again.
-            if is_closing_sequence(&input[last_space_index + 1..]) {
-                Ok(("", input[..last_space_index].trim()))
-            } else {
-                Ok(("", input))
-            }
-        }
-        None => {
-            if is_closing_sequence(input) {
-                Ok(("", ""))
-            } else {
-                Ok(("", input))
-            }
-        }
+fn title<'a>(input: &'a str) -> ParseResult<&'a str, &'a str> {
+    recognize(one_of((
+        recognize((at_least_1_space_or_tab, rest)),
+        line_ending_or_eof,
+    )))
+    .map(|title_segment: &'a str| extract_title(title_segment))
+    .parse(input)
+}
+
+fn extract_title(segment: &str) -> &str {
+    // Clean up the whitespaces around as they are not part of the title.
+    let maybe_title = segment.trim();
+    // Find the last word in the remaining possible title.
+    let last_word_index = match maybe_title.rfind([' ', '\t']) {
+        Some(last_space_index) => last_space_index + 1,
+        None => 0,
+    };
+    // The last word is included unless it is a closing sequence.
+    if is_closing_sequence(&maybe_title[last_word_index..]) {
+        maybe_title[..last_word_index].trim()
+    } else {
+        maybe_title
     }
 }
 
@@ -105,14 +93,8 @@ mod test {
         failure_case!(should_reject_blank_line, "\n");
         failure_case!(should_reject_tab_indent, "\t# Heading\n");
         failure_case!(should_reject_4_whitespaces_prefix, "    # Heading\n");
-        failure_case!(
-            should_reject_missing_whitespace_before_content,
-            "#hashtag\n"
-        );
-        failure_case!(
-            should_reject_if_not_just_hash_before_content,
-            "#5 Heading\n"
-        );
+        failure_case!(should_reject_missing_whitespace_before_title, "#hashtag\n");
+        failure_case!(should_reject_if_not_just_hash_before_title, "#5 Heading\n");
         failure_case!(should_reject_7_hashes, "####### Heading\n");
         failure_case!(should_reject_escaped_hash, r"\## Heading\n");
 
@@ -165,6 +147,11 @@ mod test {
             should_work_with_empty_heading_without_newline,
             "#",
             parsed => AtxHeading::new("#", "", 1)
+        );
+        success_case!(
+            should_work_with_empty_heading_with_newline,
+            "#\n",
+            parsed => AtxHeading::new("#\n", "", 1)
         );
         success_case!(
             should_work_with_blank_heading,
