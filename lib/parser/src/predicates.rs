@@ -1,3 +1,8 @@
+/// Returns a predicate that is true when the value equals the provided one.
+pub fn is<T: PartialEq>(value: T) -> impl Fn(T) -> bool {
+    move |i| i == value
+}
+
 /// Returns a predicate that is true when the value matches one of the provided ones.
 ///
 /// The reverse of [is_none_of].
@@ -8,6 +13,29 @@ pub fn is_one_of<T: PartialEq>(values: &[T]) -> impl Fn(T) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    mod is {
+        use super::*;
+
+        #[test]
+        fn should_return_true_when_value_equals() {
+            let predicate = is(1);
+            assert!(predicate(1));
+        }
+
+        #[test]
+        fn should_return_false_when_value_does_not_equal() {
+            let predicate = is(1);
+            assert!(!predicate(2));
+        }
+
+        #[test]
+        fn should_work_with_str() {
+            let predicate = is("a");
+            assert!(predicate("a"));
+            assert!(!predicate("b"));
+        }
+    }
 
     mod is_one_of {
         use super::*;

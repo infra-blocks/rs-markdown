@@ -1,8 +1,8 @@
-use super::{IsEmpty, Parser, SplitAt, SubsetRange, utils::Reverse};
-use crate::ParseResult;
+use super::{IsEmpty, Parser, SplitAt, SubsetRange};
+use crate::{ConsumedParser, Map, ParseResult, consumed};
 
+// TODO: rename for "parsed"?
 pub trait Recognize: Sized {
-    #[allow(dead_code)]
     fn recognize(self) -> RecognizeParser<Self>;
 }
 
@@ -18,12 +18,14 @@ pub fn recognize<P>(parser: P) -> RecognizeParser<P> {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RecognizeParser<P> {
-    parser: P,
+    parser: ConsumedParser<P>,
 }
 
 impl<P> RecognizeParser<P> {
     fn new(parser: P) -> Self {
-        Self { parser }
+        Self {
+            parser: consumed(parser),
+        }
     }
 }
 
@@ -34,12 +36,9 @@ where
 {
     type Output = I;
 
-    fn parse(&self, input: I) -> ParseResult<I, I> {
-        let (remaining, _) = self.parser.parse(input.clone())?;
-        if remaining.is_empty() {
-            return Ok((remaining, input));
-        }
-        Ok(input.split_at(input.subset_range(remaining).0).reverse())
+    fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
+        let parser = |input| self.parser.parse(input);
+        parser.map(|(consumed, _)| consumed).parse(input)
     }
 }
 
