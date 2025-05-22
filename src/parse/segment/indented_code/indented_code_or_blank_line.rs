@@ -1,6 +1,12 @@
 use super::IndentedCodeSegment;
-use crate::{Segment, ast::block::BlankLine, parse::traits::NomParse};
-use nom::{IResult, Parser, branch::alt, error::ParseError};
+use crate::{
+    Segment,
+    ast::block::BlankLine,
+    parse::{
+        parser::{Map, ParseResult, Parser, one_of},
+        traits::ParseLine,
+    },
+};
 
 /// An enum representing either an indented code segment or a blank line segment.
 ///
@@ -56,11 +62,11 @@ impl<'a> From<BlankLine<'a>> for IndentedCodeOrBlankLineSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for IndentedCodeOrBlankLineSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        alt((
-            IndentedCodeSegment::nom_parse.map(Self::from),
-            BlankLine::nom_parse.map(Self::from),
+impl<'a> ParseLine<'a> for IndentedCodeOrBlankLineSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        one_of((
+            IndentedCodeSegment::parse_line.map(Self::from),
+            BlankLine::parse_line.map(Self::from),
         ))
         .parse(input)
     }
