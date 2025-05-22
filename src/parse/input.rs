@@ -1,4 +1,4 @@
-use super::parser::{Enumerate, IsEmpty, SplitAt, SubsetRange};
+use parser::{Enumerate, IsEmpty, SplitAt, SubsetRange};
 use std::fmt::Debug;
 
 /// A trait to regroup different all the different requirements to use all parser functionalities.

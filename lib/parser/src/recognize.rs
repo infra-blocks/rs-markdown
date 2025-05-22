@@ -1,5 +1,5 @@
 use super::{IsEmpty, Parser, SplitAt, SubsetRange, utils::Reverse};
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
 
 pub trait Recognize: Sized {
     #[allow(dead_code)]
@@ -46,10 +46,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::{
-        parser::{Map, take, typed_fail},
-        utils::alias,
-    };
+    use crate::{Map, take, typed_fail, utils::alias};
 
     alias!(fail, typed_fail!(&'static str));
 

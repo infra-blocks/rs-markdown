@@ -2,7 +2,6 @@ use crate::{
     Segment, Segments,
     parse::{
         input::Input,
-        parser::{ParseResult, Parser, ZeroToMany},
         traits::{NomParse, Parse},
         utils::is_blank_line,
     },
@@ -14,6 +13,7 @@ use nom::{
     combinator::{recognize, verify},
     error::ParseError,
 };
+use parser::{ParseResult, Parser, ZeroToMany};
 use std::{iter::FusedIterator, slice};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

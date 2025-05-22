@@ -2,13 +2,13 @@ use crate::{
     ast::block::BackticksFencedCode,
     parse::{
         input::Input,
-        parser::{Enumerator, Map, ParseResult, Parser, Validate},
         segment::fenced_code::{
             BackticksFencedCodeClosingSegment, BackticksFencedCodeOpeningSegment,
         },
         traits::Parse,
     },
 };
+use parser::{Enumerator, Map, ParseResult, Parser, Validate};
 
 enum ContentOrClosingSegment<'a> {
     Content(&'a str),

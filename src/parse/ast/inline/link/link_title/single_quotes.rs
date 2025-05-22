@@ -2,13 +2,13 @@ use crate::{
     ast::inline::link::SingleQuotesLinkTitle,
     parse::{
         input::Input,
-        parser::{Map, ParseResult, Parser, one_of},
         segment::link_title::{
             SingleQuotesLinkTitleMultiSegments, SingleQuotesLinkTitleSingleSegment,
         },
         traits::Parse,
     },
 };
+use parser::{Map, ParseResult, Parser, one_of};
 
 impl<'a> Parse<&'a str> for SingleQuotesLinkTitle<'a> {
     fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {

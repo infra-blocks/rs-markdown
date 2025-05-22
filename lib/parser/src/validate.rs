@@ -1,5 +1,5 @@
-use super::Parser;
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
+use crate::Parser;
 
 pub trait Validate<F>: Sized {
     fn validate(self, func: F) -> ValidateParser<Self, F>;
@@ -48,9 +48,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse::parser::fail::typed_fail;
-    use crate::parse::parser::take;
-    use crate::parse::utils::alias;
+    use crate::{take, typed_fail, utils::alias};
 
     alias!(fail, typed_fail![&'static str]);
 

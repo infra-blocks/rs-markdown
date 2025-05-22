@@ -7,11 +7,11 @@ pub use indented_code_or_blank_line::*;
 use crate::{
     Segment,
     parse::{
-        parser::{Map, ParseResult, Parser, recognize, rest},
         parser_utils::{indented_by_at_least_4, is_blank_line},
         traits::ParseLine,
     },
 };
+use parser::{Map, ParseResult, Parser, recognize, rest};
 
 pub fn indented_code<'a>(input: &'a str) -> ParseResult<&'a str, IndentedCodeSegment<'a>> {
     if is_blank_line(input) {

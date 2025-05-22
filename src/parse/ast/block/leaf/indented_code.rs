@@ -2,11 +2,11 @@ use crate::{
     ast::block::IndentedCode,
     parse::{
         input::Input,
-        parser::ParseResult,
         segment::indented_code::{ContinuationSegments, IndentedCodeSegment},
         traits::Parse,
     },
 };
+use parser::ParseResult;
 
 impl<'a> Parse<&'a str> for IndentedCode<'a> {
     fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {

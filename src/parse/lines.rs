@@ -1,7 +1,5 @@
-use super::{
-    input::Input,
-    parser::{Enumerate, Indexable, IsEmpty, SplitAt, SubsetRange},
-};
+use super::input::Input;
+use parser::{Enumerate, Indexable, IsEmpty, SplitAt, SubsetRange};
 use std::str::SplitInclusive;
 
 pub fn lines<'a, T: Into<Lines<'a>>>(source: T) -> Lines<'a> {

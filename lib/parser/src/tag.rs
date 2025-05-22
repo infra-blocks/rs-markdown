@@ -1,5 +1,5 @@
 use super::{Parser, PrefixEnd, SplitAt, utils::Reverse};
-use crate::parse::parser::ParseResult;
+use crate::ParseResult;
 
 pub fn tag<T>(tag: T) -> TagParser<T> {
     TagParser::new(tag)

@@ -6,12 +6,9 @@ use crate::{
     ast::inline::link::{
         DoubleQuotesLinkTitle, LinkTitle, ParenthesesLinkTitle, SingleQuotesLinkTitle,
     },
-    parse::{
-        input::Input,
-        parser::{Map, ParseResult, Parser, one_of},
-        traits::Parse,
-    },
+    parse::{input::Input, traits::Parse},
 };
+use parser::{Map, ParseResult, Parser, one_of};
 
 impl<'a> Parse<&'a str> for LinkTitle<'a> {
     fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {

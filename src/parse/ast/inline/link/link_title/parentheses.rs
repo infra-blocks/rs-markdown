@@ -2,13 +2,13 @@ use crate::{
     ast::inline::link::ParenthesesLinkTitle,
     parse::{
         input::Input,
-        parser::{Map, ParseResult, Parser, one_of},
         segment::link_title::{
             ParenthesesLinkTitleMultiSegments, ParenthesesLinkTitleSingleSegment,
         },
         traits::Parse,
     },
 };
+use parser::{Map, ParseResult, Parser, one_of};
 
 impl<'a> Parse<&'a str> for ParenthesesLinkTitle<'a> {
     fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {

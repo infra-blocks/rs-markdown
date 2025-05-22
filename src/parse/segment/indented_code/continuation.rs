@@ -1,12 +1,9 @@
 use super::{IndentedCodeOrBlankLineSegment, IndentedCodeSegment};
 use crate::{
     ast::block::BlankLine,
-    parse::{
-        input::Input,
-        parser::{And, OneToMany, ParseResult, Parser, ZeroToMany},
-        traits::Parse,
-    },
+    parse::{input::Input, traits::Parse},
 };
+use parser::{And, OneToMany, ParseResult, Parser, ZeroToMany};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContinuationSegments<'a> {
