@@ -61,7 +61,7 @@ pub fn tildes_fenced_code_closing_segment<'a>(
     consumed((
         indented_by_less_than_4,
         utils::tildes_fence,
-        space_or_tab,
+        space_or_tab(),
         line_ending_or_eof,
     ))
     .map(
