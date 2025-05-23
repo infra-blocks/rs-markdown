@@ -1,11 +1,23 @@
-use nom::Parser;
-use nom::character::complete::space0;
-use nom::combinator::eof;
-use nom::{IResult, combinator::consumed, error::ParseError};
-
 use crate::Segment;
-use crate::parse::traits::NomParse;
-use crate::parse::utils::{indented_by_less_than_4, line};
+use crate::parse::parser_utils::{indented_by_less_than_4, line_ending_or_eof, space_or_tab};
+use crate::parse::traits::ParseLine;
+use parser::{Map, ParseResult, Parser, consumed};
+
+pub fn backticks_fenced_code_opening_segment<'a>(
+    input: &'a str,
+) -> ParseResult<&'a str, BackticksFencedCodeOpeningSegment<'a>> {
+    consumed((
+        indented_by_less_than_4,
+        utils::backticks_fence,
+        utils::info_string,
+    ))
+    .map(
+        |(segment, (indent, fence, info_string)): (&'a str, (&'a str, &'a str, &'a str))| {
+            BackticksFencedCodeOpeningSegment::new(segment, indent.len(), fence.len(), info_string)
+        },
+    )
+    .parse(input)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BackticksFencedCodeOpeningSegment<'a> {
@@ -27,17 +39,9 @@ impl<'a> BackticksFencedCodeOpeningSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for BackticksFencedCodeOpeningSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        consumed(line.and_then((
-            indented_by_less_than_4,
-            utils::backticks_fence,
-            utils::info_string,
-        )))
-        .map(|(segment, (indent, fence, info_string))| {
-            Self::new(segment, indent.len(), fence.len(), info_string)
-        })
-        .parse(input)
+impl<'a> ParseLine<'a> for BackticksFencedCodeOpeningSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        backticks_fenced_code_opening_segment(input)
     }
 }
 
@@ -45,6 +49,23 @@ impl<'a> Segment<'a> for BackticksFencedCodeOpeningSegment<'a> {
     fn segment(&self) -> &'a str {
         self.segment
     }
+}
+
+pub fn backticks_fenced_code_closing_segment<'a>(
+    input: &'a str,
+) -> ParseResult<&'a str, BackticksFencedCodeClosingSegment<'a>> {
+    consumed((
+        indented_by_less_than_4,
+        utils::backticks_fence,
+        space_or_tab,
+        line_ending_or_eof,
+    ))
+    .map(
+        |(segment, (indent, fence, _, _)): (&'a str, (&'a str, &'a str, &'a str, &'a str))| {
+            BackticksFencedCodeClosingSegment::new(segment, indent.len(), fence.len())
+        },
+    )
+    .parse(input)
 }
 
 // Closing segments don't have info strings.
@@ -72,11 +93,9 @@ impl<'a> BackticksFencedCodeClosingSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for BackticksFencedCodeClosingSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        consumed(line.and_then((indented_by_less_than_4, utils::backticks_fence, space0, eof)))
-            .map(|(segment, (indent, fence, _, _))| Self::new(segment, indent.len(), fence.len()))
-            .parse(input)
+impl<'a> ParseLine<'a> for BackticksFencedCodeClosingSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        backticks_fenced_code_closing_segment(input)
     }
 }
 
@@ -211,24 +230,14 @@ mod test {
 }
 
 mod utils {
-    use crate::parse::utils::is_char;
-    use nom::{
-        IResult, Parser,
-        bytes::complete::take_while_m_n,
-        combinator::{rest, verify},
-        error::ParseError,
-    };
+    use parser::{ParseResult, Parser, is, rest, take_while, validate};
 
-    pub fn backticks_fence<'a, Error: ParseError<&'a str>>(
-        input: &'a str,
-    ) -> IResult<&'a str, &'a str, Error> {
-        take_while_m_n(3, usize::MAX, is_char('`')).parse(input)
+    pub fn backticks_fence(input: &str) -> ParseResult<&str, &str> {
+        take_while(is('`')).at_least(3).parse(input)
     }
 
-    pub fn info_string<'a, Error: ParseError<&'a str>>(
-        input: &'a str,
-    ) -> IResult<&'a str, &'a str, Error> {
-        let (remaining, parsed) = verify(rest, |s: &str| {
+    pub fn info_string(input: &str) -> ParseResult<&str, &str> {
+        let (remaining, parsed) = validate(rest, |s: &&str| {
             // The info string cannot contain backticks.
             !s.contains('`')
         })
@@ -242,13 +251,12 @@ mod utils {
 
         mod backticks_fence {
             use super::*;
-            use nom::error::Error;
 
             macro_rules! failure_case {
                 ($test:ident, $segment:expr) => {
                     #[test]
                     fn $test() {
-                        assert!(backticks_fence::<Error<&str>>($segment).is_err());
+                        assert!(backticks_fence($segment).is_err());
                     }
                 };
             }
@@ -257,10 +265,7 @@ mod utils {
                 ($test:ident, $segment:expr, $expected:expr) => {
                     #[test]
                     fn $test() {
-                        assert_eq!(
-                            backticks_fence::<Error<&str>>($segment),
-                            Ok(("", $expected))
-                        );
+                        assert_eq!(backticks_fence($segment), Ok(("", $expected)));
                     }
                 };
             }

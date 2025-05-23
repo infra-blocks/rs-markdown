@@ -1,17 +1,27 @@
-use nom::{
-    IResult, Parser,
-    character::complete::space0,
-    combinator::{consumed, eof},
-    error::ParseError,
-};
-
 use crate::{
     Segment,
     parse::{
-        traits::NomParse,
-        utils::{indented_by_less_than_4, line},
+        parser_utils::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
+        traits::ParseLine,
     },
 };
+use parser::{Map, ParseResult, Parser, consumed};
+
+pub fn tildes_fenced_code_opening_segment<'a>(
+    input: &'a str,
+) -> ParseResult<&'a str, TildesFencedCodeOpeningSegment<'a>> {
+    consumed((
+        indented_by_less_than_4,
+        utils::tildes_fence,
+        utils::info_string,
+    ))
+    .map(
+        |(segment, (indent, fence, info_string)): (&'a str, (&'a str, &'a str, &'a str))| {
+            TildesFencedCodeOpeningSegment::new(segment, indent.len(), fence.len(), info_string)
+        },
+    )
+    .parse(input)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TildesFencedCodeOpeningSegment<'a> {
@@ -33,17 +43,9 @@ impl<'a> TildesFencedCodeOpeningSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for TildesFencedCodeOpeningSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        consumed(line.and_then((
-            indented_by_less_than_4,
-            utils::tildes_fence,
-            utils::info_string,
-        )))
-        .map(|(segment, (indent, fence, info_string))| {
-            Self::new(segment, indent.len(), fence.len(), info_string)
-        })
-        .parse(input)
+impl<'a> ParseLine<'a> for TildesFencedCodeOpeningSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        tildes_fenced_code_opening_segment(input)
     }
 }
 
@@ -51,6 +53,23 @@ impl<'a> Segment<'a> for TildesFencedCodeOpeningSegment<'a> {
     fn segment(&self) -> &'a str {
         self.segment
     }
+}
+
+pub fn tildes_fenced_code_closing_segment<'a>(
+    input: &'a str,
+) -> ParseResult<&'a str, TildesFencedCodeClosingSegment<'a>> {
+    consumed((
+        indented_by_less_than_4,
+        utils::tildes_fence,
+        space_or_tab,
+        line_ending_or_eof,
+    ))
+    .map(
+        |(segment, (indent, fence, _, _)): (&'a str, (&'a str, &'a str, &'a str, &'a str))| {
+            TildesFencedCodeClosingSegment::new(segment, indent.len(), fence.len())
+        },
+    )
+    .parse(input)
 }
 
 // Closing segments don't have info strings.
@@ -78,11 +97,9 @@ impl<'a> TildesFencedCodeClosingSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for TildesFencedCodeClosingSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error> {
-        consumed(line.and_then((indented_by_less_than_4, utils::tildes_fence, space0, eof)))
-            .map(|(segment, (indent, fence, _, _))| Self::new(segment, indent.len(), fence.len()))
-            .parse(input)
+impl<'a> ParseLine<'a> for TildesFencedCodeClosingSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        tildes_fenced_code_closing_segment(input)
     }
 }
 
@@ -197,21 +214,48 @@ mod test {
 }
 
 mod utils {
-    use crate::parse::utils::is_char;
-    use nom::{
-        IResult, Parser, bytes::complete::take_while_m_n, combinator::rest, error::ParseError,
-    };
+    use parser::{Map, ParseResult, Parser, is, rest, take_while};
 
-    pub fn tildes_fence<'a, Error: ParseError<&'a str>>(
-        input: &'a str,
-    ) -> IResult<&'a str, &'a str, Error> {
-        take_while_m_n(3, usize::MAX, is_char('~')).parse(input)
+    pub fn tildes_fence(input: &str) -> ParseResult<&str, &str> {
+        take_while(is('~')).at_least(3).parse(input)
     }
 
-    pub fn info_string<'a, Error: ParseError<&'a str>>(
-        input: &'a str,
-    ) -> IResult<&'a str, &'a str, Error> {
-        let (remaining, info_string) = rest.parse(input)?;
-        Ok((remaining, info_string.trim()))
+    pub fn info_string<'a>(input: &'a str) -> ParseResult<&'a str, &'a str> {
+        rest.map(|parsed: &'a str| parsed.trim()).parse(input)
+    }
+
+    #[cfg(test)]
+    mod test {
+        use super::*;
+
+        mod tildes_fence {
+            use super::*;
+
+            macro_rules! failure_case {
+                ($test:ident, $segment:expr) => {
+                    #[test]
+                    fn $test() {
+                        assert!(tildes_fence($segment).is_err());
+                    }
+                };
+            }
+
+            macro_rules! success_case {
+                ($test:ident, $segment:expr, $expected:expr) => {
+                    #[test]
+                    fn $test() {
+                        assert_eq!(tildes_fence($segment), Ok(("", $expected)));
+                    }
+                };
+            }
+
+            failure_case!(should_reject_empty, "");
+            failure_case!(should_reject_1_backtick, "~");
+            failure_case!(should_reject_2_tildes, "~~");
+
+            success_case!(should_work_with_3_tildes, "~~~", "~~~");
+            success_case!(should_work_with_4_tildes, "~~~~", "~~~~");
+            success_case!(should_work_with_5_tildes, "~~~~~", "~~~~~");
+        }
     }
 }
