@@ -3,7 +3,7 @@ use crate::{
     ast::block::BlankLine,
     parse::{input::Input, traits::Parse},
 };
-use parser::{And, OneToMany, ParseResult, Parser, ZeroToMany};
+use parser::{And, ParseResult, Parser, Repeated};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContinuationSegments<'a> {
@@ -26,9 +26,10 @@ impl<'a> ContinuationSegments<'a> {
 impl<'a> Parse<&'a str> for ContinuationSegments<'a> {
     fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         let (remaining, blocks) = BlankLine::parse
-            .zero_to_many()
+            .repeated()
             .and(IndentedCodeSegment::parse)
-            .one_to_many()
+            .repeated()
+            .at_least(1)
             .parse(input)?;
 
         let mut segments = Vec::new();

@@ -13,7 +13,7 @@ use nom::{
     combinator::{recognize, verify},
     error::ParseError,
 };
-use parser::{ParseResult, Parser, ZeroToMany};
+use parser::{ParseResult, Parser, Repeated};
 use std::{iter::FusedIterator, slice};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,7 +67,7 @@ impl<'a> Parse<&'a str> for SingleQuotesLinkTitleMultiSegments<'a> {
     fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening) = SingleQuotesLinkTitleOpeningSegment::parse(input)?;
         let (remaining, continuations) = SingleQuotesLinkTitleContinuationSegment::parse
-            .zero_to_many()
+            .repeated()
             .parse(remaining)?;
         let (remaining, closing) = SingleQuotesLinkTitleClosingSegment::parse(remaining)?;
         Ok((remaining, Self::new(opening, continuations, closing)))
