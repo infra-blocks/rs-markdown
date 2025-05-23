@@ -33,8 +33,8 @@ macro_rules! test_parse_macros {
                             use crate::parse::Lines;
 
                             assert_eq!(
-                                <$type>::parse(Lines::from($input)),
-                                Ok((Lines::from($remaining), $parsed))
+                                Ok((Lines::from($remaining), $parsed)),
+                                <$type>::parse(Lines::from($input))
                             );
                         }
                     };

@@ -17,6 +17,8 @@ pub fn indented_by_less_than_4(input: &str) -> ParseResult<&str, &str> {
     validate(space_or_tab, |s: &&str| !s.contains("\t") && s.len() < 4).parse(input)
 }
 
+// TODO: those should return take whiles instead, so they can be augmented with at least, at most, between.
+
 /// Consumes any amount of spaces or tabs.
 ///
 /// If the input doesn't start with a space or a tab, the parser will succeed and
