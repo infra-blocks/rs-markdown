@@ -20,9 +20,9 @@ pub fn thematic_break<'a>(input: &'a str) -> ParseResult<&'a str, ThematicBreak<
 fn asterisks(input: &str) -> ParseResult<&str, &str> {
     recognize((
         tag("*"),
-        space_or_tab,
+        space_or_tab(),
         tag("*"),
-        space_or_tab,
+        space_or_tab(),
         tag("*"),
         take_while(is_one_of(&['*', ' ', '\t'])),
     ))
@@ -32,9 +32,9 @@ fn asterisks(input: &str) -> ParseResult<&str, &str> {
 fn hyphens(input: &str) -> ParseResult<&str, &str> {
     recognize((
         tag("-"),
-        space_or_tab,
+        space_or_tab(),
         tag("-"),
-        space_or_tab,
+        space_or_tab(),
         tag("-"),
         take_while(is_one_of(&['-', ' ', '\t'])),
     ))
@@ -44,9 +44,9 @@ fn hyphens(input: &str) -> ParseResult<&str, &str> {
 fn underscores(input: &str) -> ParseResult<&str, &str> {
     recognize((
         tag("_"),
-        space_or_tab,
+        space_or_tab(),
         tag("_"),
-        space_or_tab,
+        space_or_tab(),
         tag("_"),
         take_while(is_one_of(&['_', ' ', '\t'])),
     ))

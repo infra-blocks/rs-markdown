@@ -1,7 +1,7 @@
 use crate::{
     ast::block::AtxHeading,
     parse::{
-        parser_utils::{at_least_1_space_or_tab, indented_by_less_than_4, line_ending_or_eof},
+        parser_utils::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
         traits::ParseLine,
     },
 };
@@ -41,7 +41,7 @@ fn hashes(input: &str) -> ParseResult<&str, u8> {
 /// A title will be invalid if it is not empty and does not start with a whitespace character.
 fn title<'a>(input: &'a str) -> ParseResult<&'a str, &'a str> {
     recognize(one_of((
-        recognize((at_least_1_space_or_tab, rest)),
+        recognize((space_or_tab().at_least(1), rest)),
         line_ending_or_eof,
     )))
     .map(|title_segment: &'a str| extract_title(title_segment))
