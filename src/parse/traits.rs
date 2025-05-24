@@ -1,19 +1,5 @@
 use super::input::Input;
-use nom::{
-    IResult,
-    error::{Error, ParseError},
-};
 use parser::{Enumerator, ParseResult};
-
-/// The trait formalizing the parsing interface of structs.
-///
-/// It is a thin wrapper around [nom]'s parsing semantics.
-pub trait NomParse<'a>
-where
-    Self: Sized,
-{
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>;
-}
 
 /// For types that can be parsed from a single line of input.
 pub trait ParseLine<'a>
@@ -23,19 +9,7 @@ where
     fn parse_line(input: &'a str) -> ParseResult<&'a str, Self>;
 }
 
-impl<'a, T> ParseLine<'a> for T
-where
-    T: NomParse<'a>,
-{
-    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
-        match Self::nom_parse::<Error<&str>>(input) {
-            Ok((remaining, parsed)) => Ok((remaining, parsed)),
-            Err(_) => Err(input),
-        }
-    }
-}
-
-// TODO: parse_many that receives an [Extend] implementer to stuff in the results yo.
+// TODO: parse_extend that receives an [Extend] implementer to stuff in the results yo.
 
 /// This trait is the main interface for parsing.
 ///
