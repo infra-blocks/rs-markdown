@@ -214,10 +214,10 @@ mod test {
 }
 
 mod utils {
-    use parser::{Map, ParseResult, Parser, is, rest, take_while};
+    use parser::{Map, ParseResult, Parser, equals, rest, take_while};
 
     pub fn tildes_fence(input: &str) -> ParseResult<&str, &str> {
-        take_while(is('~')).at_least(3).parse(input)
+        take_while(equals('~')).at_least(3).parse(input)
     }
 
     pub fn info_string<'a>(input: &'a str) -> ParseResult<&'a str, &'a str> {

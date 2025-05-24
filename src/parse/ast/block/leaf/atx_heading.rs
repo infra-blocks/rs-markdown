@@ -5,7 +5,7 @@ use crate::{
         traits::ParseLine,
     },
 };
-use parser::{Map, ParseResult, Parser, consumed, is, one_of, recognize, rest, take_while};
+use parser::{Map, ParseResult, Parser, consumed, equals, one_of, recognize, rest, take_while};
 
 pub fn atx_heading(input: &str) -> ParseResult<&str, AtxHeading> {
     consumed((indented_by_less_than_4, hashes, title))
@@ -24,7 +24,7 @@ impl<'a> ParseLine<'a> for AtxHeading<'a> {
 ///
 /// Note that if there are more than 6 hashes, this function does not fail.
 fn hashes(input: &str) -> ParseResult<&str, u8> {
-    take_while(is('#'))
+    take_while(equals('#'))
         .at_least(1)
         .at_most(6)
         .map(|hashes: &str| {
