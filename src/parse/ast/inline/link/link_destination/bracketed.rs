@@ -1,19 +1,18 @@
-use crate::ast::inline::link::BracketedLinkDestination;
-use crate::parse::{traits::NomParse, utils::escaped_sequence};
-use nom::{
-    IResult, Parser, branch::alt, bytes::complete::is_not, character::complete::char,
-    combinator::recognize, error::ParseError, multi::many0,
+use crate::parse::traits::ParseLine;
+use crate::{ast::inline::link::BracketedLinkDestination, parse::parser_utils::escaped_sequence};
+use parser::{
+    Map, ParseResult, Parser, is_one_of, not, one_of, recognize, repeated, tag, take_while,
 };
 
-impl<'a> NomParse<'a> for BracketedLinkDestination<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
+impl<'a> ParseLine<'a> for BracketedLinkDestination<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
         recognize((
-            char('<'),
-            many0(alt((escaped_sequence, is_not("\n\\<>")))),
-            char('>'),
+            tag("<"),
+            repeated(one_of((
+                escaped_sequence,
+                take_while(not(is_one_of(&['\n', '\\', '<', '>']))).at_least(1),
+            ))),
+            tag(">"),
         ))
         .map(Self::new)
         .parse(input)

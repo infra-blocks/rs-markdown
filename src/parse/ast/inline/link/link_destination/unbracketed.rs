@@ -1,14 +1,8 @@
-use crate::ast::inline::link::UnbracketedLinkDestination;
-use crate::parse::{
-    traits::NomParse,
-    utils::{parentheseses_balance, take_one},
+use crate::parse::traits::ParseLine;
+use crate::{
+    ast::inline::link::UnbracketedLinkDestination, parse::parser_utils::parentheseses_balance,
 };
-use nom::{
-    IResult, Parser,
-    bytes::complete::take_while,
-    combinator::{recognize, verify},
-    error::ParseError,
-};
+use parser::{Map, ParseResult, Parser, recognize, take, take_while, validate};
 
 /*
 From the spec, a "unbracketed" link destination is:
@@ -16,17 +10,14 @@ a nonempty sequence of characters that does not start with <, does not include A
 and includes parentheses only if (a) they are backslash-escaped or (b) they are part of a balanced pair of unescaped parentheses.
 (Implementations may impose limits on parentheses nesting to avoid performance issues, but at least three levels of nesting should be supported.)
 */
-impl<'a> NomParse<'a> for UnbracketedLinkDestination<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        verify(
+impl<'a> ParseLine<'a> for UnbracketedLinkDestination<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        validate(
             recognize((
-                take_one(utils::is_opening_char),
+                take(1).that(utils::is_opening_char),
                 take_while(utils::is_continuation_char),
             )),
-            parentheseses_balance,
+            |segment: &&str| parentheseses_balance(segment),
         )
         .map(Self::new)
         .parse(input)

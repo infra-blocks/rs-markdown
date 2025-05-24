@@ -10,6 +10,14 @@ pub fn is_one_of<T: PartialEq>(values: &[T]) -> impl Fn(T) -> bool {
     move |i| values.contains(&i)
 }
 
+/// Returns a predicate that negates the return of the provided predicate.
+pub fn not<F, I>(predicate: F) -> impl Fn(I) -> bool
+where
+    F: Fn(I) -> bool,
+{
+    move |i| !predicate(i)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -64,6 +72,29 @@ mod test {
             assert!(!predicate("d"));
             assert!(!predicate("e"));
             assert!(!predicate("f"));
+        }
+    }
+
+    mod not {
+        use super::*;
+
+        #[test]
+        fn should_return_true_when_predicate_is_false() {
+            let predicate = not(is(1));
+            assert!(predicate(2));
+        }
+
+        #[test]
+        fn should_return_false_when_predicate_is_true() {
+            let predicate = not(is(1));
+            assert!(!predicate(1));
+        }
+
+        #[test]
+        fn should_work_with_str() {
+            let predicate = not(is("a"));
+            assert!(predicate("b"));
+            assert!(!predicate("a"));
         }
     }
 }

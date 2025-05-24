@@ -1,7 +1,7 @@
 use nom::{
     IResult, Parser,
     branch::alt,
-    bytes::complete::{take_until, take_while_m_n},
+    bytes::complete::take_until,
     character::{
         anychar,
         complete::{char, line_ending, space0},
@@ -54,32 +54,6 @@ pub fn line<'a, Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, 
         verify(rest, |s: &str| !s.is_empty()),
     ))
     .parse(input)
-}
-
-/// Returns whether the parentheses in the segment are balanced.
-///
-/// Escaped parentheses are ignored.
-pub fn parentheseses_balance(segment: &str) -> bool {
-    // Ignore escaped parentheseses by removing them.
-    let sanitized = segment.replace(r"\(", "").replace(r"\)", "");
-    // Ensure the count of opening and closing parentheseses is equal.
-    sanitized.chars().filter(|&c| c == '(').count()
-        == sanitized.chars().filter(|&c| c == ')').count()
-}
-
-/// Takes a single character matching the predicate provided.
-///
-/// It's very similar to the [nom::character::one_of] parser, but uses a predicate
-/// instead of a list of characters.
-pub fn take_one<'a, F, Error>(predicate: F) -> impl Parser<&'a str, Output = char, Error = Error>
-where
-    F: Fn(char) -> bool,
-    Error: ParseError<&'a str>,
-{
-    take_while_m_n(1, 1, predicate).map(|s: &str| {
-        assert!(s.len() == 1);
-        s.chars().next().unwrap()
-    })
 }
 
 #[cfg(test)]
@@ -187,73 +161,6 @@ mod test {
             let (remaining, parsed) = indented_by_less_than_4::<Error<&str>>("   abc").unwrap();
             assert_eq!(remaining, "abc");
             assert_eq!(parsed, "   ");
-        }
-    }
-
-    mod parentheseses_balance {
-        use super::*;
-
-        #[test]
-        fn should_reject_single_opening_parenthesis() {
-            assert!(!parentheseses_balance("("));
-        }
-
-        #[test]
-        fn should_reject_single_closing_parenthesis() {
-            assert!(!parentheseses_balance(")"));
-        }
-
-        #[test]
-        fn should_reject_unbalanced_parentheses() {
-            assert!(!parentheseses_balance("(foo(and(bar))"));
-        }
-
-        #[test]
-        fn should_accept_an_empty_string() {
-            assert!(parentheseses_balance(""));
-        }
-
-        #[test]
-        fn should_accept_string_without_parentheses() {
-            assert!(parentheseses_balance("foo"));
-        }
-
-        #[test]
-        fn should_accept_unbalanced_escaped_parentheses() {
-            assert!(parentheseses_balance(r"\(\(foo\)and\(bar\)"));
-        }
-
-        #[test]
-        fn should_accept_balanced_parentheses() {
-            assert!(parentheseses_balance("(foo(and(bar)))"));
-        }
-
-        #[test]
-        fn should_accept_balanced_parentheses_and_ignore_escaped_ones() {
-            assert!(parentheseses_balance(r"(foo\(blip(and(bar)))"));
-        }
-    }
-
-    mod take_one {
-        use super::*;
-
-        #[test]
-        fn should_fail_with_empty_string() {
-            assert!(take_one::<_, Error<&str>>(is_char('a')).parse("").is_err());
-        }
-
-        #[test]
-        fn should_fail_with_non_matching_character() {
-            assert!(take_one::<_, Error<&str>>(is_char('a')).parse("b").is_err());
-        }
-
-        #[test]
-        fn should_work_with_matching_character() {
-            let (remaining, parsed) = take_one::<_, Error<&str>>(|c| c.is_ascii_control())
-                .parse("\x00ab")
-                .unwrap();
-            assert_eq!(remaining, "ab");
-            assert_eq!(parsed, '\x00');
         }
     }
 }
