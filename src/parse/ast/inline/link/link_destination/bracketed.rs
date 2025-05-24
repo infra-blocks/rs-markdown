@@ -1,5 +1,5 @@
 use crate::parse::traits::ParseLine;
-use crate::{ast::inline::link::BracketedLinkDestination, parse::parser_utils::escaped_sequence};
+use crate::{ast::inline::link::BracketedLinkDestination, parse::parsers::escaped_sequence};
 use parser::{
     Map, ParseResult, Parser, is_one_of, not, one_of, recognize, repeated, tag, take_while,
 };

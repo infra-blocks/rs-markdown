@@ -1,6 +1,6 @@
 use crate::parse::traits::ParseLine;
 use crate::{
-    ast::inline::link::UnbracketedLinkDestination, parse::parser_utils::parentheseses_balance,
+    ast::inline::link::UnbracketedLinkDestination, parse::predicates::parentheseses_balance,
 };
 use parser::{Map, ParseResult, Parser, recognize, take, take_while, validate};
 

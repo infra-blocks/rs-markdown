@@ -2,7 +2,8 @@ use crate::{
     Segment, Segments,
     parse::{
         input::Input,
-        parser_utils::{is_blank_line, line_ending},
+        parsers::line_ending,
+        predicates::is_blank_line,
         traits::{Parse, ParseLine},
     },
 };
@@ -363,7 +364,7 @@ This is not included!",
 }
 
 mod utils {
-    use crate::parse::parser_utils::escaped_sequence;
+    use crate::parse::parsers::escaped_sequence;
     use parser::{ParseResult, Parser, is_one_of, not, one_of, recognize, repeated, take_while};
 
     /// Parses the input string to extract all characters that valid within a link title segment.

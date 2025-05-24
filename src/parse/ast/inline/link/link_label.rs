@@ -1,6 +1,6 @@
 use crate::{
     ast::inline::link::LinkLabel,
-    parse::{parser_utils::escaped_sequence, traits::ParseLine},
+    parse::{parsers::escaped_sequence, traits::ParseLine},
 };
 use parser::{
     Map, ParseResult, Parser, Repeated, is_one_of, not, one_of, recognize, tag, take_while,
