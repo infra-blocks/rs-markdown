@@ -1,5 +1,5 @@
 /// Returns a predicate that is true when the value equals the provided one.
-pub fn is<T: PartialEq>(value: T) -> impl Fn(T) -> bool {
+pub fn equals<T: PartialEq>(value: T) -> impl Fn(T) -> bool {
     move |i| i == value
 }
 
@@ -22,24 +22,24 @@ where
 mod test {
     use super::*;
 
-    mod is {
+    mod equals {
         use super::*;
 
         #[test]
         fn should_return_true_when_value_equals() {
-            let predicate = is(1);
+            let predicate = equals(1);
             assert!(predicate(1));
         }
 
         #[test]
         fn should_return_false_when_value_does_not_equal() {
-            let predicate = is(1);
+            let predicate = equals(1);
             assert!(!predicate(2));
         }
 
         #[test]
         fn should_work_with_str() {
-            let predicate = is("a");
+            let predicate = equals("a");
             assert!(predicate("a"));
             assert!(!predicate("b"));
         }
@@ -80,19 +80,19 @@ mod test {
 
         #[test]
         fn should_return_true_when_predicate_is_false() {
-            let predicate = not(is(1));
+            let predicate = not(equals(1));
             assert!(predicate(2));
         }
 
         #[test]
         fn should_return_false_when_predicate_is_true() {
-            let predicate = not(is(1));
+            let predicate = not(equals(1));
             assert!(!predicate(1));
         }
 
         #[test]
         fn should_work_with_str() {
-            let predicate = not(is("a"));
+            let predicate = not(equals("a"));
             assert!(predicate("b"));
             assert!(!predicate("a"));
         }

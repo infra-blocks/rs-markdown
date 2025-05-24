@@ -230,10 +230,10 @@ mod test {
 }
 
 mod utils {
-    use parser::{ParseResult, Parser, is, rest, take_while, validate};
+    use parser::{ParseResult, Parser, equals, rest, take_while, validate};
 
     pub fn backticks_fence(input: &str) -> ParseResult<&str, &str> {
-        take_while(is('`')).at_least(3).parse(input)
+        take_while(equals('`')).at_least(3).parse(input)
     }
 
     pub fn info_string(input: &str) -> ParseResult<&str, &str> {
