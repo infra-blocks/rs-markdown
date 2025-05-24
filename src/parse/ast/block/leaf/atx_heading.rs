@@ -1,7 +1,7 @@
 use crate::{
     ast::block::AtxHeading,
     parse::{
-        parser_utils::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
+        parsers::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
         traits::ParseLine,
     },
 };

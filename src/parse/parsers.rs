@@ -1,4 +1,4 @@
-use super::is_space_or_tab;
+use super::predicates::is_space_or_tab;
 use parser::{
     ParseResult, Parser, TakeWhileParser, one_of, recognize, tag, take, take_while, validate,
 };

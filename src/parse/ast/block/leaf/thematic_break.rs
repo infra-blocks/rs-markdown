@@ -1,5 +1,5 @@
 use crate::ast::block::ThematicBreak;
-use crate::parse::parser_utils::{indented_by_less_than_4, line_ending_or_eof, space_or_tab};
+use crate::parse::parsers::{indented_by_less_than_4, line_ending_or_eof, space_or_tab};
 use crate::parse::traits::ParseLine;
 use parser::{Map, ParseResult, Parser, is_one_of, one_of, recognize, tag, take_while};
 

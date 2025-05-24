@@ -6,10 +6,7 @@ pub use indented_code_or_blank_line::*;
 
 use crate::{
     Segment,
-    parse::{
-        parser_utils::{indented_by_at_least_4, is_blank_line},
-        traits::ParseLine,
-    },
+    parse::{parsers::indented_by_at_least_4, predicates::is_blank_line, traits::ParseLine},
 };
 use parser::{Map, ParseResult, Parser, recognize, rest};
 

@@ -1,7 +1,7 @@
 use crate::{
     ast::block::BlankLine,
     parse::{
-        parser_utils::{eof, line_ending, space_or_tab},
+        parsers::{eof, line_ending, space_or_tab},
         traits::ParseLine,
     },
 };
