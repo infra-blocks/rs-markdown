@@ -35,6 +35,8 @@ where
     }
 }
 
+// TODO: parse_many that receives an [Extend] implementer to stuff in the results yo.
+
 /// This trait is the main interface for parsing.
 ///
 /// The implementer is expected to receive the input and return a [ParseResult].
