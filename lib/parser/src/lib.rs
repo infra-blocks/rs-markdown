@@ -12,7 +12,6 @@ mod recognize;
 mod repeated;
 mod rest;
 mod tag;
-#[cfg(test)]
 mod take;
 mod take_while;
 mod traits;
@@ -33,7 +32,6 @@ pub use recognize::*;
 pub use repeated::*;
 pub use rest::*;
 pub use tag::*;
-#[cfg(test)]
 pub use take::*;
 pub use take_while::*;
 pub use traits::*;
