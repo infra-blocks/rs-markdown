@@ -6,6 +6,5 @@ pub mod segment;
 #[cfg(test)]
 pub mod test_utils;
 pub mod traits;
-pub mod utils;
 
 pub use lines::*;

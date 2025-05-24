@@ -1,10 +1,10 @@
 mod equals;
 mod hyphens;
 
-use crate::{Segment, parse::traits::NomParse};
+use crate::{Segment, parse::traits::ParseLine};
 pub use equals::*;
 pub use hyphens::*;
-use nom::{IResult, Parser, branch::alt, error::ParseError};
+use parser::{Map, Parser, one_of};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SetextHeadingUnderlineSegment<'a> {
@@ -33,14 +33,11 @@ impl<'a> From<SetextHeadingHyphensUnderlineSegment<'a>> for SetextHeadingUnderli
     }
 }
 
-impl<'a> NomParse<'a> for SetextHeadingUnderlineSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        alt((
-            SetextHeadingEqualsUnderlineSegment::nom_parse.map(Self::from),
-            SetextHeadingHyphensUnderlineSegment::nom_parse.map(Self::from),
+impl<'a> ParseLine<'a> for SetextHeadingUnderlineSegment<'a> {
+    fn parse_line(input: &'a str) -> parser::ParseResult<&'a str, Self> {
+        one_of((
+            SetextHeadingEqualsUnderlineSegment::parse_line.map(Self::from),
+            SetextHeadingHyphensUnderlineSegment::parse_line.map(Self::from),
         ))
         .parse(input)
     }

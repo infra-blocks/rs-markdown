@@ -1,17 +1,11 @@
 use crate::{
     Segment,
     parse::{
-        traits::NomParse,
-        utils::{indented_by_less_than_4, is_char, line},
+        parser_utils::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
+        traits::ParseLine,
     },
 };
-use nom::{
-    IResult, Parser,
-    bytes::complete::take_while1,
-    character::complete::space0,
-    combinator::{eof, recognize},
-    error::ParseError,
-};
+use parser::{Map, Parser, equals, recognize, take_while};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SetextHeadingHyphensUnderlineSegment<'a>(&'a str);
@@ -26,17 +20,14 @@ impl<'a> SetextHeadingHyphensUnderlineSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for SetextHeadingHyphensUnderlineSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        recognize(line.and_then((
+impl<'a> ParseLine<'a> for SetextHeadingHyphensUnderlineSegment<'a> {
+    fn parse_line(input: &'a str) -> parser::ParseResult<&'a str, Self> {
+        recognize((
             indented_by_less_than_4,
-            take_while1(is_char('-')),
-            space0,
-            eof,
-        )))
+            take_while(equals('-')).at_least(1),
+            space_or_tab(),
+            line_ending_or_eof,
+        ))
         .map(Self::new)
         .parse(input)
     }
