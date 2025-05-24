@@ -1,5 +1,16 @@
 use super::is_space_or_tab;
-use parser::{ParseResult, Parser, TakeWhileParser, one_of, tag, take_while, validate};
+use parser::{
+    ParseResult, Parser, TakeWhileParser, one_of, recognize, tag, take, take_while, validate,
+};
+
+/// Parses any escaped character sequence.
+///
+/// An escaped character sequence is a backslash character followed by any other character.
+/// This parser always matches 2 characters, or fails. Note that this parser either
+/// takes 2 characters or fails.
+pub fn escaped_sequence(input: &str) -> ParseResult<&str, &str> {
+    recognize((tag("\\"), take(1))).parse(input)
+}
 
 /// Parses and consumes all spaces and tabs at the beginning of the input,
 /// then verifies that the amount of whitespace is at least 4.
@@ -51,6 +62,51 @@ pub fn line_ending_or_eof(input: &str) -> ParseResult<&str, &str> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    mod escaped_sequence {
+        use super::*;
+
+        #[test]
+        fn should_fail_with_empty_string() {
+            assert!(escaped_sequence("").is_err());
+        }
+
+        #[test]
+        fn should_fail_with_just_backslash() {
+            assert!(escaped_sequence("\\").is_err());
+        }
+
+        #[test]
+        fn should_fail_with_any_other_single_character() {
+            assert!(escaped_sequence("a").is_err());
+        }
+
+        #[test]
+        fn should_fail_with_an_unescaped_pair_of_characters() {
+            assert!(escaped_sequence("a\\").is_err());
+        }
+
+        #[test]
+        fn should_work_with_double_backslash() {
+            let (remaining, parsed) = escaped_sequence("\\\\").unwrap();
+            assert_eq!(remaining, "");
+            assert_eq!(parsed, "\\\\");
+        }
+
+        #[test]
+        fn should_work_with_escaped_ascii_character() {
+            let (remaining, parsed) = escaped_sequence("\\a").unwrap();
+            assert_eq!(remaining, "");
+            assert_eq!(parsed, "\\a");
+        }
+
+        #[test]
+        fn should_work_with_escaped_unicode_character() {
+            let (remaining, parsed) = escaped_sequence("\\é").unwrap();
+            assert_eq!(remaining, "");
+            assert_eq!(parsed, "\\é");
+        }
+    }
 
     mod indented_by_at_least_4 {
         use super::*;
