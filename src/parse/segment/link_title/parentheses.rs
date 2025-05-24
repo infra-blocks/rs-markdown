@@ -2,18 +2,11 @@ use crate::{
     Segment, Segments,
     parse::{
         input::Input,
-        parser_utils::is_blank_line,
-        traits::{NomParse, Parse},
+        parser_utils::{is_blank_line, line_ending},
+        traits::{Parse, ParseLine},
     },
 };
-use nom::{
-    IResult, Parser as _,
-    bytes::complete::tag,
-    character::complete::line_ending,
-    combinator::{recognize, verify},
-    error::ParseError,
-};
-use parser::{ParseResult, Parser, Repeated};
+use parser::{Map, ParseResult, Parser, Repeated, recognize, tag, validate};
 use std::{iter::FusedIterator, slice};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,11 +18,8 @@ impl<'a> ParenthesesLinkTitleSingleSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for ParenthesesLinkTitleSingleSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
+impl<'a> ParseLine<'a> for ParenthesesLinkTitleSingleSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
         recognize((tag("("), utils::valid_characters, tag(")")))
             .map(Self::new)
             .parse(input)
@@ -127,11 +117,8 @@ impl<'a> ParenthesesLinkTitleOpeningSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for ParenthesesLinkTitleOpeningSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
+impl<'a> ParseLine<'a> for ParenthesesLinkTitleOpeningSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
         recognize((tag("("), utils::valid_characters, line_ending))
             .map(Self::new)
             .parse(input)
@@ -147,14 +134,11 @@ impl<'a> ParenthesesLinkTitleContinuationSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for ParenthesesLinkTitleContinuationSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
-        verify(
+impl<'a> ParseLine<'a> for ParenthesesLinkTitleContinuationSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        validate(
             recognize((utils::valid_characters, line_ending)),
-            |output: &str| !is_blank_line(output),
+            |segment: &&str| !is_blank_line(segment),
         )
         .map(Self::new)
         .parse(input)
@@ -170,11 +154,8 @@ impl<'a> ParenthesesLinkTitleClosingSegment<'a> {
     }
 }
 
-impl<'a> NomParse<'a> for ParenthesesLinkTitleClosingSegment<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
+impl<'a> ParseLine<'a> for ParenthesesLinkTitleClosingSegment<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
         recognize((utils::valid_characters, tag(")")))
             .map(Self::new)
             .parse(input)
@@ -382,21 +363,20 @@ This is not included!",
 }
 
 mod utils {
-    use crate::parse::utils::escaped_sequence;
-    use nom::{
-        IResult, Parser, branch::alt, bytes::complete::is_not, combinator::recognize,
-        error::ParseError, multi::many0,
-    };
+    use crate::parse::parser_utils::escaped_sequence;
+    use parser::{ParseResult, Parser, is_one_of, not, one_of, recognize, repeated, take_while};
 
     /// Parses the input string to extract all characters that valid within a link title segment.
     ///
     /// It accepts any escape sequence, but rejects unescaped parentheses and terminating backslashes
     /// (without a follow character). It also does not allow new lines or carriage returns. This
     /// logic is expected to be handled outside of this function.
-    pub fn valid_characters<'a, Error: ParseError<&'a str>>(
-        input: &'a str,
-    ) -> IResult<&'a str, &'a str, Error> {
-        recognize(many0(alt((escaped_sequence, is_not("\\()\r\n"))))).parse(input)
+    pub fn valid_characters(input: &str) -> ParseResult<&str, &str> {
+        recognize(repeated(one_of((
+            escaped_sequence,
+            take_while(not(is_one_of(&['\\', '(', ')', '\r', '\n']))).at_least(1),
+        ))))
+        .parse(input)
     }
 
     #[cfg(test)]
@@ -405,12 +385,11 @@ mod utils {
 
         mod valid_characters {
             use super::*;
-            use nom::error::Error;
 
             #[test]
             fn should_not_ingest_opening_parenthesis() {
                 let input = "(";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("(", remaining);
                 assert_eq!("", parsed);
             }
@@ -418,7 +397,7 @@ mod utils {
             #[test]
             fn should_not_ingest_closing_parenthesis() {
                 let input = ")";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!(")", remaining);
                 assert_eq!("", parsed);
             }
@@ -426,7 +405,7 @@ mod utils {
             #[test]
             fn should_not_ingest_backslash() {
                 let input = "\\";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("\\", remaining);
                 assert_eq!("", parsed);
             }
@@ -434,7 +413,7 @@ mod utils {
             #[test]
             fn should_ingest_escaped_opening_parenthesis() {
                 let input = "\\(";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("", remaining);
                 assert_eq!("\\(", parsed);
             }
@@ -442,7 +421,7 @@ mod utils {
             #[test]
             fn should_ingest_escaped_closing_parenthesis() {
                 let input = "\\)";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("", remaining);
                 assert_eq!("\\)", parsed);
             }
@@ -450,7 +429,7 @@ mod utils {
             #[test]
             fn should_ingest_any_escaped_sequence() {
                 let input = "\\;";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("", remaining);
                 assert_eq!("\\;", parsed);
             }
@@ -458,7 +437,7 @@ mod utils {
             #[test]
             fn should_ingest_anything_else() {
                 let input = "Hello, World!";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("", remaining);
                 assert_eq!("Hello, World!", parsed);
             }
@@ -466,7 +445,7 @@ mod utils {
             #[test]
             fn should_stop_at_opening_parenthesis() {
                 let input = "Hello, (World!";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("(World!", remaining);
                 assert_eq!("Hello, ", parsed);
             }
@@ -474,7 +453,7 @@ mod utils {
             #[test]
             fn should_stop_at_closing_parenthesis() {
                 let input = "Hello, )World!";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!(")World!", remaining);
                 assert_eq!("Hello, ", parsed);
             }
@@ -482,7 +461,7 @@ mod utils {
             #[test]
             fn should_stop_at_terminating_backslash() {
                 let input = "Hello, World!\\";
-                let (remaining, parsed) = valid_characters::<Error<&str>>(input).unwrap();
+                let (remaining, parsed) = valid_characters(input).unwrap();
                 assert_eq!("\\", remaining);
                 assert_eq!("Hello, World!", parsed);
             }

@@ -2,24 +2,11 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::complete::take_until,
-    character::{
-        anychar,
-        complete::{char, line_ending, space0},
-    },
-    combinator::{recognize, rest, verify},
+    character::complete::{line_ending, space0},
+    combinator::{rest, verify},
     error::ParseError,
     sequence::terminated,
 };
-
-/// Parses any escaped character sequence.
-///
-/// An escaped character sequence is a backslash character followed by any other character.
-/// This parser always matches 2 characters, or fails.
-pub fn escaped_sequence<'a, Error: ParseError<&'a str>>(
-    input: &'a str,
-) -> IResult<&'a str, &'a str, Error> {
-    recognize((char('\\'), anychar)).parse(input)
-}
 
 /// Parses the leading indentation of a line, up to 3 spaces.
 ///
@@ -60,51 +47,6 @@ pub fn line<'a, Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, 
 mod test {
     use super::*;
     use nom::error::Error;
-
-    mod escaped_sequence {
-        use super::*;
-
-        #[test]
-        fn should_fail_with_empty_string() {
-            assert!(escaped_sequence::<Error<&str>>("").is_err());
-        }
-
-        #[test]
-        fn should_fail_with_just_backslash() {
-            assert!(escaped_sequence::<Error<&str>>("\\").is_err());
-        }
-
-        #[test]
-        fn should_fail_with_any_other_single_character() {
-            assert!(escaped_sequence::<Error<&str>>("a").is_err());
-        }
-
-        #[test]
-        fn should_fail_with_an_unescaped_pair_of_characters() {
-            assert!(escaped_sequence::<Error<&str>>("a\\").is_err());
-        }
-
-        #[test]
-        fn should_work_with_double_backslash() {
-            let (remaining, parsed) = escaped_sequence::<Error<&str>>("\\\\").unwrap();
-            assert_eq!(remaining, "");
-            assert_eq!(parsed, "\\\\");
-        }
-
-        #[test]
-        fn should_work_with_escaped_ascii_character() {
-            let (remaining, parsed) = escaped_sequence::<Error<&str>>("\\a").unwrap();
-            assert_eq!(remaining, "");
-            assert_eq!(parsed, "\\a");
-        }
-
-        #[test]
-        fn should_work_with_escaped_unicode_character() {
-            let (remaining, parsed) = escaped_sequence::<Error<&str>>("\\é").unwrap();
-            assert_eq!(remaining, "");
-            assert_eq!(parsed, "\\é");
-        }
-    }
 
     mod line {
         use super::*;
