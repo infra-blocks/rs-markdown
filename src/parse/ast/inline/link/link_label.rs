@@ -1,14 +1,10 @@
 use crate::{
     ast::inline::link::LinkLabel,
-    parse::{traits::NomParse, utils::escaped_sequence},
+    parse::{parser_utils::escaped_sequence, traits::ParseLine},
 };
-use nom::{
-    IResult, Parser,
-    branch::alt,
-    bytes::complete::{is_not, tag},
-    combinator::{recognize, verify},
-    error::ParseError,
-    multi::many1,
+use parser::{
+    Map, ParseResult, Parser, Repeated, is_one_of, not, one_of, recognize, tag, take_while,
+    validate,
 };
 
 /*
@@ -18,16 +14,20 @@ Between these brackets there must be at least one character that is not a space,
 Unescaped square bracket characters are not allowed inside the opening and closing square brackets of link labels.
 A link label can have at most 999 characters inside the square brackets.
 */
-impl<'a> NomParse<'a> for LinkLabel<'a> {
-    fn nom_parse<Error: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Self, Error>
-    where
-        Self: Sized,
-    {
+impl<'a> ParseLine<'a> for LinkLabel<'a> {
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
         recognize((
             tag("["),
-            verify(
-                recognize(many1(alt((escaped_sequence, is_not("\\[]"))))),
-                utils::is_valid_content,
+            validate(
+                recognize(
+                    (one_of((
+                        escaped_sequence,
+                        take_while(not(is_one_of(&['\\', '[', ']']))).at_least(1),
+                    )))
+                    .repeated()
+                    .at_least(1),
+                ),
+                |segment: &&str| utils::is_valid_content(segment),
             ),
             tag("]"),
         ))
