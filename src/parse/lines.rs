@@ -1,5 +1,5 @@
 use super::input::Input;
-use parser::{Enumerate, Indexable, IsEmpty, SplitAt, SubsetRange};
+use parser::{Indexable, IsEmpty, ItemsIndices, SplitAt, SubsetRange};
 use std::str::SplitInclusive;
 
 pub fn lines<'a, T: Into<Lines<'a>>>(source: T) -> Lines<'a> {
@@ -35,10 +35,12 @@ impl Indexable for Lines<'_> {
     }
 }
 
-impl<'a> Enumerate<&'a str> for Lines<'a> {
-    fn items_indices(&self) -> impl Iterator<Item = (Self::Index, &'a str)> {
+impl<'a> ItemsIndices<&'a str> for Lines<'a> {
+    type ItemsIndices = LinesIndices<SplitInclusive<'a, char>>;
+
+    fn items_indices(&self) -> Self::ItemsIndices {
         // Careful to return the byte offset of the line with the line.
-        LinesEnumerator::from(*self)
+        LinesIndices::from(*self)
     }
 }
 
@@ -63,24 +65,25 @@ impl IsEmpty for Lines<'_> {
 
 impl<'a> Input<&'a str> for Lines<'a> {}
 
-struct LinesEnumerator<I> {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LinesIndices<I> {
     iter: I,
     offset: usize,
 }
 
-impl<I> LinesEnumerator<I> {
+impl<I> LinesIndices<I> {
     fn new(iter: I) -> Self {
         Self { iter, offset: 0 }
     }
 }
 
-impl<'a> From<Lines<'a>> for LinesEnumerator<SplitInclusive<'a, char>> {
+impl<'a> From<Lines<'a>> for LinesIndices<SplitInclusive<'a, char>> {
     fn from(lines: Lines<'a>) -> Self {
         Self::new(lines.source.split_inclusive('\n'))
     }
 }
 
-impl<'a, I> Iterator for LinesEnumerator<I>
+impl<'a, I> Iterator for LinesIndices<I>
 where
     I: Iterator<Item = &'a str>,
 {

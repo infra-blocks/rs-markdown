@@ -24,43 +24,36 @@ pub trait Indexable {
     fn last_index(&self) -> Self::Index;
 }
 
-pub trait Enumerate<T>: Indexable {
-    fn enumerate(&self) -> impl Enumerator<Self::Index, T> {
-        EnumeratorImpl::new(self.items_indices(), self.last_index())
+pub trait ItemsIndices<T>: Indexable {
+    type ItemsIndices: Iterator<Item = (Self::Index, T)>;
+
+    fn enumerate(&self) -> Enumerator<Self::ItemsIndices, Self::Index> {
+        Enumerator::new(self.items_indices(), self.last_index())
     }
-    fn items_indices(&self) -> impl Iterator<Item = (Self::Index, T)>;
+    fn items_indices(&self) -> Self::ItemsIndices;
 }
 
-pub trait Enumerator<I, T>: Iterator<Item = (I, T)>
-where
-    I: Index,
-{
-    fn next_index(&mut self) -> I;
-}
-
-struct EnumeratorImpl<I: Iterator, Index> {
+pub struct Enumerator<I: Iterator, Index> {
     iter: Peekable<I>,
     last_index: Index,
 }
 
-impl<I, Index> EnumeratorImpl<I, Index>
+impl<I, Idx> Enumerator<I, Idx>
 where
     I: Iterator,
+    Idx: Index,
 {
-    pub fn new(iter: I, last_index: Index) -> Self {
+    pub fn new(iter: I, last_index: Idx) -> Self {
         Self {
             iter: iter.peekable(),
             last_index,
         }
     }
-}
 
-impl<I, L, T> Enumerator<L, T> for EnumeratorImpl<I, L>
-where
-    L: Index,
-    I: Iterator<Item = (L, T)>,
-{
-    fn next_index(&mut self) -> L {
+    pub fn next_index<T>(&mut self) -> Idx
+    where
+        I: Iterator<Item = (Idx, T)>,
+    {
         match self.iter.peek() {
             Some((index, _)) => *index,
             None => self.last_index,
@@ -68,7 +61,7 @@ where
     }
 }
 
-impl<I, Index, T> Iterator for EnumeratorImpl<I, Index>
+impl<I, Index, T> Iterator for Enumerator<I, Index>
 where
     I: Iterator<Item = (Index, T)>,
 {

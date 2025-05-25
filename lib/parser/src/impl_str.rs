@@ -1,4 +1,5 @@
-use super::{Enumerate, Index, Indexable, IsEmpty, PrefixEnd, SplitAt, SubsetRange};
+use super::{Index, Indexable, IsEmpty, ItemsIndices, PrefixEnd, SplitAt, SubsetRange};
+use std::str::CharIndices;
 
 impl Index for usize {}
 
@@ -10,8 +11,10 @@ impl Indexable for &str {
     }
 }
 
-impl Enumerate<char> for &str {
-    fn items_indices(&self) -> impl Iterator<Item = (Self::Index, char)> {
+impl<'a> ItemsIndices<char> for &'a str {
+    type ItemsIndices = CharIndices<'a>;
+
+    fn items_indices(&self) -> Self::ItemsIndices {
         self.char_indices()
     }
 }

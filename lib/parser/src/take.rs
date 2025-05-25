@@ -1,4 +1,4 @@
-use super::{Enumerate, Enumerator, Parser, SplitAt, utils::Reverse};
+use super::{ItemsIndices, Parser, SplitAt, utils::Reverse};
 use crate::ParseResult;
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -30,7 +30,7 @@ impl<T> TakeParser<T> {
 
 impl<I, T> Parser<I> for TakeParser<T>
 where
-    I: Enumerate<T> + SplitAt,
+    I: ItemsIndices<T> + SplitAt,
 {
     type Output = I;
 
@@ -68,7 +68,7 @@ impl<T, F> TakeThatParser<T, F> {
 
 impl<I, T, F> Parser<I> for TakeThatParser<T, F>
 where
-    I: Enumerate<T> + SplitAt,
+    I: ItemsIndices<T> + SplitAt,
     F: Fn(T) -> bool,
 {
     type Output = I;

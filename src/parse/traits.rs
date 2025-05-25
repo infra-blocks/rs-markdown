@@ -1,5 +1,5 @@
 use super::input::Input;
-use parser::{Enumerator, ParseResult};
+use parser::ParseResult;
 
 /// For types that can be parsed from a single line of input.
 pub trait ParseLine<'a>

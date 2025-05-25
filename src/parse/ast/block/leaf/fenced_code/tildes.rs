@@ -6,7 +6,7 @@ use crate::{
         traits::Parse,
     },
 };
-use parser::{Enumerator, Map, ParseResult, Parser, Validate};
+use parser::{Map, ParseResult, Parser, Validate};
 
 enum ContentOrClosingSegment<'a> {
     Content(&'a str),
