@@ -5,6 +5,7 @@ mod empty;
 mod fail;
 mod impl_str;
 mod map;
+mod maybe;
 mod one_of;
 mod or;
 mod preceded;
@@ -26,6 +27,7 @@ pub use empty::*;
 #[cfg(test)]
 pub use fail::*;
 pub use map::*;
+pub use maybe::*;
 pub use one_of::*;
 pub use or::*;
 pub use preceded::*;
