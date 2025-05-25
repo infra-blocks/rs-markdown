@@ -1,6 +1,6 @@
 use super::input::Input;
 use parser::{Indexable, IsEmpty, ItemsIndices, SplitAt, SubsetRange};
-use std::str::SplitInclusive;
+use std::str::{CharIndices, SplitInclusive};
 
 pub fn lines<'a, T: Into<Lines<'a>>>(source: T) -> Lines<'a> {
     source.into()
@@ -39,8 +39,16 @@ impl<'a> ItemsIndices<&'a str> for Lines<'a> {
     type ItemsIndices = LinesIndices<SplitInclusive<'a, char>>;
 
     fn items_indices(&self) -> Self::ItemsIndices {
-        // Careful to return the byte offset of the line with the line.
+        // This iterator outputs line by line and the index is the byte offset of the first character of the line.
         LinesIndices::from(*self)
+    }
+}
+
+impl<'a> ItemsIndices<char> for Lines<'a> {
+    type ItemsIndices = CharIndices<'a>;
+
+    fn items_indices(&self) -> Self::ItemsIndices {
+        self.source.items_indices()
     }
 }
 
