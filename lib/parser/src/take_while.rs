@@ -1,4 +1,4 @@
-use super::{Enumerate, ParseResult, Parser, SplitAt, utils::Reverse};
+use super::{ItemsIndices, ParseResult, Parser, SplitAt, utils::Reverse};
 use std::mem;
 
 pub fn take_while<E, F>(predicate: F) -> TakeWhileParser<E, F> {
@@ -34,7 +34,7 @@ impl<E, F> TakeWhileParser<E, F> {
 
 impl<I, E, F> Parser<I> for TakeWhileParser<E, F>
 where
-    I: Enumerate<E> + SplitAt,
+    I: ItemsIndices<E> + SplitAt,
     F: Fn(E) -> bool,
 {
     type Output = I;
@@ -76,7 +76,7 @@ impl<E, F> TakeWhileAtMostParser<E, F> {
 
 impl<I, E, F> Parser<I> for TakeWhileAtMostParser<E, F>
 where
-    I: Enumerate<E> + SplitAt,
+    I: ItemsIndices<E> + SplitAt,
     F: Fn(E) -> bool,
 {
     type Output = I;
@@ -118,7 +118,7 @@ impl<E, F> TakeWhileAtLeastParser<E, F> {
 
 impl<I, E, F> Parser<I> for TakeWhileAtLeastParser<E, F>
 where
-    I: Enumerate<E> + SplitAt,
+    I: ItemsIndices<E> + SplitAt,
     F: Fn(E) -> bool,
 {
     type Output = I;
@@ -177,7 +177,7 @@ impl<E, F> TakeWhileBetweenParser<E, F> {
 
 impl<I, E, F> Parser<I> for TakeWhileBetweenParser<E, F>
 where
-    I: Enumerate<E> + SplitAt,
+    I: ItemsIndices<E> + SplitAt,
     F: Fn(E) -> bool,
 {
     type Output = I;
