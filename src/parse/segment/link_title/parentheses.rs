@@ -54,8 +54,8 @@ impl<'a> ParenthesesLinkTitleMultiSegments<'a> {
     }
 }
 
-impl<'a> Parse<&'a str> for ParenthesesLinkTitleMultiSegments<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for ParenthesesLinkTitleMultiSegments<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening) = ParenthesesLinkTitleOpeningSegment::parse(input)?;
         let (remaining, continuations) = ParenthesesLinkTitleContinuationSegment::parse
             .repeated()

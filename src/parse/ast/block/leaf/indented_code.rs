@@ -8,8 +8,8 @@ use crate::{
 };
 use parser::ParseResult;
 
-impl<'a> Parse<&'a str> for IndentedCode<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for IndentedCode<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening_segment) = IndentedCodeSegment::parse(input)?;
         match ContinuationSegments::parse(remaining) {
             Ok((remaining, continuation_segments)) => {

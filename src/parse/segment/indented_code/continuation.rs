@@ -23,8 +23,8 @@ impl<'a> ContinuationSegments<'a> {
     }
 }
 
-impl<'a> Parse<&'a str> for ContinuationSegments<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for ContinuationSegments<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         let (remaining, blocks) = BlankLine::parse
             .repeated()
             .and(IndentedCodeSegment::parse)

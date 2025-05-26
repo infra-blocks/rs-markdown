@@ -56,7 +56,7 @@ where
 #[cfg(test)]
 impl<'a, U> StrictParse<'a> for U
 where
-    U: Parse<&'a str> + Debug,
+    U: Parse<'a> + Debug,
 {
     fn strict_parse(input: &'a str) -> Self {
         let (remaining, parsed) = Self::parse(Lines::from(input)).unwrap();

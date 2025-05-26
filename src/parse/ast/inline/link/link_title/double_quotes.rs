@@ -10,8 +10,8 @@ use crate::{
 };
 use parser::{Map, ParseResult, Parser, one_of};
 
-impl<'a> Parse<&'a str> for DoubleQuotesLinkTitle<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for DoubleQuotesLinkTitle<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         one_of((
             DoubleQuotesLinkTitleSingleSegment::parse.map(Self::Single),
             DoubleQuotesLinkTitleMultiSegments::parse.map(Self::Multi),

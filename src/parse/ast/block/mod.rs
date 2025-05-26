@@ -7,8 +7,8 @@ use crate::{
 };
 use parser::{Map, ParseResult, Parser};
 
-impl<'a> Parse<&'a str> for Block<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for Block<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         Leaf::parse.map(Block::Leaf).parse(input)
     }
 }
