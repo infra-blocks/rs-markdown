@@ -1,7 +1,7 @@
 use crate::{
     ast::block::AtxHeading,
     parse::{
-        parsers::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
+        parsers::{indented_by_less_than_4, line_ending_or_empty, space_or_tab},
         traits::ParseLine,
     },
 };
@@ -42,7 +42,7 @@ fn hashes(input: &str) -> ParseResult<&str, u8> {
 fn title<'a>(input: &'a str) -> ParseResult<&'a str, &'a str> {
     recognize(one_of((
         recognize((space_or_tab().at_least(1), rest)),
-        line_ending_or_eof,
+        line_ending_or_empty,
     )))
     .map(|title_segment: &'a str| extract_title(title_segment))
     .parse(input)

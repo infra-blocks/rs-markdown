@@ -1,7 +1,7 @@
 use crate::{
     Segment,
     parse::{
-        parsers::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
+        parsers::{indented_by_less_than_4, line_ending_or_empty, space_or_tab},
         traits::ParseLine,
     },
 };
@@ -26,7 +26,7 @@ impl<'a> ParseLine<'a> for SetextHeadingHyphensUnderlineSegment<'a> {
             indented_by_less_than_4,
             take_while(equals('-')).at_least(1),
             space_or_tab(),
-            line_ending_or_eof,
+            line_ending_or_empty,
         ))
         .map(Self::new)
         .parse(input)

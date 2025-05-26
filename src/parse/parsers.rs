@@ -1,6 +1,7 @@
 use super::predicates::is_space_or_tab;
 use parser::{
-    ParseResult, Parser, TakeWhileParser, one_of, recognize, tag, take, take_while, validate,
+    IsEmpty, ItemsIndices, ParseResult, Parser, PrefixEnd, SplitAt, SubsetRange, TakeWhileParser,
+    empty, one_of, recognize, tag, take, take_while, validate,
 };
 
 /// Parses any escaped character sequence.
@@ -8,7 +9,10 @@ use parser::{
 /// An escaped character sequence is a backslash character followed by any other character.
 /// This parser always matches 2 characters, or fails. Note that this parser either
 /// takes 2 characters or fails.
-pub fn escaped_sequence(input: &str) -> ParseResult<&str, &str> {
+pub fn escaped_sequence<I>(input: I) -> ParseResult<I, I>
+where
+    I: SubsetRange<I> + SplitAt + Clone + IsEmpty + PrefixEnd<&'static str> + ItemsIndices<char>,
+{
     recognize((tag("\\"), take(1))).parse(input)
 }
 
@@ -16,47 +20,54 @@ pub fn escaped_sequence(input: &str) -> ParseResult<&str, &str> {
 /// then verifies that the amount of whitespace is at least 4.
 ///
 /// This space scoring technique is described in the [CommonMark spec](https://spec.commonmark.org/0.31.2/#tabs).
-pub fn indented_by_at_least_4(input: &str) -> ParseResult<&str, &str> {
-    validate(space_or_tab(), |s: &&str| s.contains("\t") || s.len() >= 4).parse(input)
+pub fn indented_by_at_least_4<I>(input: I) -> ParseResult<I, I>
+where
+    I: ItemsIndices<char> + Clone + SplitAt,
+{
+    validate(space_or_tab(), |s: &I| {
+        s.items().any(|c| c == '\t') || s.items().count() >= 4
+    })
+    .parse(input)
 }
 
 /// Parses and consumes all spaces and tabs at the beginning of the input,
 /// then verifies that there are no tabs and the amount of whitespace is less than 4.
 ///
 /// Tabs are not allowed, as they count for 4 spaces. See here [CommonMark spec](https://spec.commonmark.org/0.31.2/#tabs).
-pub fn indented_by_less_than_4(input: &str) -> ParseResult<&str, &str> {
-    validate(space_or_tab(), |s: &&str| !s.contains("\t") && s.len() < 4).parse(input)
+pub fn indented_by_less_than_4<I>(input: I) -> ParseResult<I, I>
+where
+    I: ItemsIndices<char> + Clone + SplitAt,
+{
+    validate(space_or_tab(), |s: &I| {
+        !s.items().any(|c| c == '\t') && s.items().count() < 4
+    })
+    .parse(input)
 }
 
 /// Consumes any amount of spaces or tabs.
 ///
 /// If the input doesn't start with a space or a tab, the parser will succeed and
 /// return an empty string as parsed.
-pub fn space_or_tab<E>() -> TakeWhileParser<E, impl Fn(char) -> bool> {
+pub fn space_or_tab<I>() -> TakeWhileParser<I, impl Fn(char) -> bool> {
     take_while(is_space_or_tab)
 }
 
 /// Consumes a line ending, which can be either `\n` or `\r\n`.
 ///
 /// This parser will fail if the input is empty or does not start with a line ending.
-pub fn line_ending(input: &str) -> ParseResult<&str, &str> {
+pub fn line_ending<I>(input: I) -> ParseResult<I, I>
+where
+    I: PrefixEnd<&'static str> + SplitAt,
+{
     one_of((tag("\n"), tag("\r\n"))).parse(input)
 }
 
-/// Consumes an empty string, signifying the end of the input.
-///
-/// This parser will fail if the input is not empty.
-pub fn eof(input: &str) -> ParseResult<&str, &str> {
-    if input.is_empty() {
-        Ok(("", ""))
-    } else {
-        Err(input)
-    }
-}
-
 /// Consumes either a line ending or the end of the input.
-pub fn line_ending_or_eof(input: &str) -> ParseResult<&str, &str> {
-    one_of((line_ending, eof)).parse(input)
+pub fn line_ending_or_empty<I>(input: I) -> ParseResult<I, I>
+where
+    I: IsEmpty + PrefixEnd<&'static str> + SplitAt + Clone,
+{
+    one_of((line_ending, empty)).parse(input)
 }
 
 #[cfg(test)]
@@ -65,6 +76,7 @@ mod test {
 
     mod escaped_sequence {
         use super::*;
+        use crate::parse::lines;
 
         #[test]
         fn should_fail_with_empty_string() {
@@ -88,28 +100,29 @@ mod test {
 
         #[test]
         fn should_work_with_double_backslash() {
-            let (remaining, parsed) = escaped_sequence("\\\\").unwrap();
-            assert_eq!(remaining, "");
-            assert_eq!(parsed, "\\\\");
+            assert_eq!(Ok(("", "\\\\")), escaped_sequence("\\\\"));
         }
 
         #[test]
         fn should_work_with_escaped_ascii_character() {
-            let (remaining, parsed) = escaped_sequence("\\a").unwrap();
-            assert_eq!(remaining, "");
-            assert_eq!(parsed, "\\a");
+            assert_eq!(Ok(("", "\\a")), escaped_sequence("\\a"));
         }
 
         #[test]
         fn should_work_with_escaped_unicode_character() {
-            let (remaining, parsed) = escaped_sequence("\\é").unwrap();
-            assert_eq!(remaining, "");
-            assert_eq!(parsed, "\\é");
+            assert_eq!(Ok(("", "\\é")), escaped_sequence("\\é"));
+        }
+
+        #[test]
+        fn should_work_with_lines() {
+            let result = escaped_sequence(lines("\\\n\ntoto"));
+            assert_eq!(Ok((lines("\ntoto"), lines("\\\n"))), result);
         }
     }
 
     mod indented_by_at_least_4 {
         use super::*;
+        use crate::parse::lines;
 
         #[test]
         fn should_fail_with_empty_string() {
@@ -128,28 +141,30 @@ mod test {
 
         #[test]
         fn should_work_with_a_tab() {
-            let (remaining, parsed) = indented_by_at_least_4("\tabc").unwrap();
-            assert_eq!(remaining, "abc");
-            assert_eq!(parsed, "\t");
+            assert_eq!(Ok(("abc", "\t")), indented_by_at_least_4("\tabc"));
         }
 
         #[test]
         fn should_work_with_4_spaces() {
-            let (remaining, parsed) = indented_by_at_least_4("    abc").unwrap();
-            assert_eq!(remaining, "abc");
-            assert_eq!(parsed, "    ");
+            assert_eq!(Ok(("abc", "    ")), indented_by_at_least_4("    abc"));
         }
 
         #[test]
         fn should_work_with_a_mix() {
-            let (remaining, parsed) = indented_by_at_least_4("   \t  \t  toto").unwrap();
-            assert_eq!(remaining, "toto");
-            assert_eq!(parsed, "   \t  \t  ");
+            let result = indented_by_at_least_4("   \t  \t  toto");
+            assert_eq!(Ok(("toto", "   \t  \t  ")), result);
+        }
+
+        #[test]
+        fn should_work_with_lines() {
+            let result = indented_by_at_least_4(lines("    \n    abc"));
+            assert_eq!(Ok((lines("\n    abc"), lines("    "))), result);
         }
     }
 
     mod indented_by_less_than_4 {
         use super::*;
+        use crate::parse::lines;
 
         #[test]
         fn should_fail_with_tab() {
@@ -175,10 +190,17 @@ mod test {
         fn should_work_with_3_spaces() {
             assert_eq!(Ok(("abc", "   ")), indented_by_less_than_4("   abc"));
         }
+
+        #[test]
+        fn should_work_with_lines() {
+            let result = indented_by_less_than_4(lines("   toto\n   abc"));
+            assert_eq!(Ok((lines("toto\n   abc"), lines("   "))), result);
+        }
     }
 
     mod space_or_tab {
         use super::*;
+        use crate::parse::lines;
 
         #[test]
         fn should_work_with_empty_string() {
@@ -194,10 +216,17 @@ mod test {
         fn should_work_with_spaces_or_tabs() {
             assert_eq!(Ok(("toto", "  \t\t ")), space_or_tab().parse("  \t\t toto"));
         }
+
+        #[test]
+        fn should_work_with_lines() {
+            let result = space_or_tab().parse(lines("  \t \n toto"));
+            assert_eq!(Ok((lines("\n toto"), lines("  \t "))), result);
+        }
     }
 
     mod line_ending {
         use super::*;
+        use crate::parse::lines;
 
         #[test]
         fn should_fail_with_empty_string() {
@@ -218,43 +247,42 @@ mod test {
         fn should_work_with_lf() {
             assert_eq!(Ok(("", "\n")), line_ending("\n"));
         }
+
+        #[test]
+        fn should_work_with_lines() {
+            let result = line_ending(lines("\r\n\n"));
+            assert_eq!(Ok((lines("\n"), lines("\r\n"))), result);
+        }
     }
 
-    mod eof {
+    mod line_ending_or_empty {
         use super::*;
+        use crate::parse::lines;
 
         #[test]
         fn should_fail_with_non_empty_string() {
-            assert!(eof("a").is_err());
+            assert!(line_ending_or_empty("a").is_err());
         }
 
         #[test]
         fn should_work_with_empty_string() {
-            assert_eq!(Ok(("", "")), eof(""));
-        }
-    }
-
-    mod line_ending_or_eof {
-        use super::*;
-
-        #[test]
-        fn should_fail_with_non_empty_string() {
-            assert!(line_ending_or_eof("a").is_err());
-        }
-
-        #[test]
-        fn should_work_with_empty_string() {
-            assert_eq!(Ok(("", "")), line_ending_or_eof(""));
+            assert_eq!(Ok(("", "")), line_ending_or_empty(""));
         }
 
         #[test]
         fn should_work_with_crlf() {
-            assert_eq!(Ok(("", "\r\n")), line_ending_or_eof("\r\n"));
+            assert_eq!(Ok(("", "\r\n")), line_ending_or_empty("\r\n"));
         }
 
         #[test]
         fn should_work_with_lf() {
-            assert_eq!(Ok(("", "\n")), line_ending_or_eof("\n"));
+            assert_eq!(Ok(("", "\n")), line_ending_or_empty("\n"));
+        }
+
+        #[test]
+        fn should_work_with_lines() {
+            let result = line_ending_or_empty(lines(""));
+            assert_eq!(Ok((lines(""), lines(""))), result);
         }
     }
 }
