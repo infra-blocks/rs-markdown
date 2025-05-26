@@ -1,4 +1,4 @@
-use std::iter::Peekable;
+use std::iter::{Map, Peekable};
 
 pub trait Parser<I> {
     type Output;
@@ -31,6 +31,12 @@ pub trait ItemsIndices<T>: Indexable {
         Enumerator::new(self.items_indices(), self.last_index())
     }
     fn items_indices(&self) -> Self::ItemsIndices;
+    // The goal of returning the type here is to not coerce behind a trait implementation. However, it is hard (impossible?)
+    // to specify the type returned here and alias it. So we just ask clippy to kindly stfu.
+    #[allow(clippy::type_complexity)]
+    fn items(&self) -> Map<Self::ItemsIndices, impl FnMut((Self::Index, T)) -> T> {
+        self.items_indices().map(|(_, item)| item)
+    }
 }
 
 pub struct Enumerator<I: Iterator, Index> {
@@ -76,6 +82,7 @@ pub trait SplitAt: Indexable + Sized {
     fn split_at(&self, index: Self::Index) -> (Self, Self);
 }
 
+// TODO: this can be implemented with ItemsIndices trait.
 pub trait PrefixEnd<T>: Indexable {
     /// If the input starts with the provided prefix, it will return the index immediately after.
     ///
