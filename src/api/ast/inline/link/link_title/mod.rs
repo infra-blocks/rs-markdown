@@ -7,7 +7,7 @@ pub use parentheses::*;
 pub use single_quotes::*;
 
 /// A link title, as described in the [spec](https://spec.commonmark.org/0.31.2/#link-title).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LinkTitle<'a> {
     DoubleQuotes(DoubleQuotesLinkTitle<'a>),
     Parentheses(ParenthesesLinkTitle<'a>),

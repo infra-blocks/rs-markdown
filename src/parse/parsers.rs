@@ -55,17 +55,17 @@ pub fn space_or_tab<I>() -> TakeWhileParser<I, impl Fn(char) -> bool> {
 /// Consumes a line ending, which can be either `\n` or `\r\n`.
 ///
 /// This parser will fail if the input is empty or does not start with a line ending.
-pub fn line_ending<I>(input: I) -> ParseResult<I, I>
+pub fn line_ending<'a, I>(input: I) -> ParseResult<I, I>
 where
-    I: PrefixEnd<&'static str> + SplitAt,
+    I: PrefixEnd<&'a str> + SplitAt,
 {
     one_of((tag("\n"), tag("\r\n"))).parse(input)
 }
 
 /// Consumes either a line ending or the end of the input.
-pub fn line_ending_or_empty<I>(input: I) -> ParseResult<I, I>
+pub fn line_ending_or_empty<'a, I>(input: I) -> ParseResult<I, I>
 where
-    I: IsEmpty + PrefixEnd<&'static str> + SplitAt + Clone,
+    I: IsEmpty + PrefixEnd<&'a str> + SplitAt + Clone,
 {
     one_of((line_ending, empty)).parse(input)
 }

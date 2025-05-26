@@ -2,6 +2,7 @@ mod atx_heading;
 mod blank_line;
 mod fenced_code;
 mod indented_code;
+mod link_reference_definition;
 mod thematic_break;
 
 use crate::{
@@ -28,10 +29,12 @@ impl DisplayHtml for Leaf<'_> {
             Leaf::IndentedCode(indented_code) => {
                 indented_code.display_html(buffer, link_reference_definitions)
             }
+            Leaf::LinkReferenceDefinition(link_reference_definition) => {
+                link_reference_definition.display_html(buffer, link_reference_definitions)
+            }
             Leaf::ThematicBreak(thematic_break) => {
                 thematic_break.display_html(buffer, link_reference_definitions)
             }
-            _ => unimplemented!("diplay html not implemented for {:?}", self),
         }
     }
 }
