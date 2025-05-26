@@ -1,16 +1,16 @@
 use crate::{
     ast::block::BlankLine,
     parse::{
-        parsers::{eof, line_ending, space_or_tab},
+        parsers::{line_ending, space_or_tab},
         traits::ParseLine,
     },
 };
-use parser::{Map, ParseResult, Parser, one_of, recognize};
+use parser::{Map, ParseResult, Parser, empty, one_of, recognize};
 
 pub fn blank_line<'a>(input: &'a str) -> ParseResult<&'a str, BlankLine<'a>> {
     recognize(one_of((
         (space_or_tab(), line_ending),
-        (space_or_tab().at_least(1), eof),
+        (space_or_tab().at_least(1), empty),
     )))
     .map(BlankLine::new)
     .parse(input)

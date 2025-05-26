@@ -1,7 +1,7 @@
 use crate::{
     Segment,
     parse::{
-        parsers::{indented_by_less_than_4, line_ending_or_eof, space_or_tab},
+        parsers::{indented_by_less_than_4, line_ending_or_empty, space_or_tab},
         traits::ParseLine,
     },
 };
@@ -62,7 +62,7 @@ pub fn tildes_fenced_code_closing_segment<'a>(
         indented_by_less_than_4,
         utils::tildes_fence,
         space_or_tab(),
-        line_ending_or_eof,
+        line_ending_or_empty,
     ))
     .map(
         |(segment, (indent, fence, _, _)): (&'a str, (&'a str, &'a str, &'a str, &'a str))| {

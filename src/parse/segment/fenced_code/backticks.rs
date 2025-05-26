@@ -1,5 +1,5 @@
 use crate::Segment;
-use crate::parse::parsers::{indented_by_less_than_4, line_ending_or_eof, space_or_tab};
+use crate::parse::parsers::{indented_by_less_than_4, line_ending_or_empty, space_or_tab};
 use crate::parse::traits::ParseLine;
 use parser::{Map, ParseResult, Parser, consumed};
 
@@ -58,7 +58,7 @@ pub fn backticks_fenced_code_closing_segment<'a>(
         indented_by_less_than_4,
         utils::backticks_fence,
         space_or_tab(),
-        line_ending_or_eof,
+        line_ending_or_empty,
     ))
     .map(
         |(segment, (indent, fence, _, _)): (&'a str, (&'a str, &'a str, &'a str, &'a str))| {
