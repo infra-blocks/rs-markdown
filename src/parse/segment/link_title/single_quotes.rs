@@ -54,8 +54,8 @@ impl<'a> SingleQuotesLinkTitleMultiSegments<'a> {
     }
 }
 
-impl<'a> Parse<&'a str> for SingleQuotesLinkTitleMultiSegments<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for SingleQuotesLinkTitleMultiSegments<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening) = SingleQuotesLinkTitleOpeningSegment::parse(input)?;
         let (remaining, continuations) = SingleQuotesLinkTitleContinuationSegment::parse
             .repeated()

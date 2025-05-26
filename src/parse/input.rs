@@ -2,8 +2,14 @@ use parser::{IsEmpty, ItemsIndices, SplitAt, SubsetRange};
 use std::fmt::Debug;
 
 /// A trait to regroup different all the different requirements to use all parser functionalities.
-pub trait Input<T>
+pub trait Input<'a>
 where
-    Self: ItemsIndices<T> + SubsetRange<T> + SplitAt + Clone + Debug + IsEmpty,
+    Self: ItemsIndices<&'a str>
+        + ItemsIndices<char>
+        + SubsetRange<&'a str>
+        + SplitAt
+        + Clone
+        + Debug
+        + IsEmpty,
 {
 }

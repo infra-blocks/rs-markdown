@@ -54,8 +54,8 @@ impl<'a> DoubleQuotesLinkTitleMultiSegments<'a> {
     }
 }
 
-impl<'a> Parse<&'a str> for DoubleQuotesLinkTitleMultiSegments<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for DoubleQuotesLinkTitleMultiSegments<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         let (remaining, opening) = DoubleQuotesLinkTitleOpeningSegment::parse(input)?;
         let (remaining, continuations) = DoubleQuotesLinkTitleContinuationSegment::parse
             .repeated()

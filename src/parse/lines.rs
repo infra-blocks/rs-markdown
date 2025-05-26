@@ -71,7 +71,7 @@ impl IsEmpty for Lines<'_> {
     }
 }
 
-impl<'a> Input<&'a str> for Lines<'a> {}
+impl<'a> Input<'a> for Lines<'a> {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LinesIndices<I> {

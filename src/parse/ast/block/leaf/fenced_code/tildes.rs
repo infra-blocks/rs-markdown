@@ -6,14 +6,14 @@ use crate::{
         traits::Parse,
     },
 };
-use parser::{Map, ParseResult, Parser, Validate};
+use parser::{ItemsIndices, Map, ParseResult, Parser, Validate};
 
 enum ContentOrClosingSegment<'a> {
     Content(&'a str),
     Closing(TildesFencedCodeClosingSegment<'a>),
 }
 
-fn content_or_closing_segment<'a, I: Input<&'a str>>(
+fn content_or_closing_segment<'a, I: Input<'a>>(
     opening: &TildesFencedCodeOpeningSegment<'a>,
 ) -> impl Fn(I) -> ParseResult<I, ContentOrClosingSegment<'a>> {
     |input: I| {
@@ -29,7 +29,7 @@ fn content_or_closing_segment<'a, I: Input<&'a str>>(
             Err(input) => {
                 // If it's not a closing segment, then it's content. It's safe to unwrap because we have already
                 // checked that the input is not empty.
-                let mut enumerator = input.enumerate();
+                let mut enumerator = <I as ItemsIndices<&'a str>>::enumerate(&input);
                 let (_, segment) = enumerator.next().unwrap();
                 let (_, remaining) = input.split_at(enumerator.next_index());
                 Ok((remaining, ContentOrClosingSegment::Content(segment)))
@@ -38,8 +38,8 @@ fn content_or_closing_segment<'a, I: Input<&'a str>>(
     }
 }
 
-impl<'a> Parse<&'a str> for TildesFencedCode<'a> {
-    fn parse<I: Input<&'a str>>(input: I) -> ParseResult<I, Self> {
+impl<'a> Parse<'a> for TildesFencedCode<'a> {
+    fn parse<I: Input<'a>>(input: I) -> ParseResult<I, Self> {
         let (mut remaining, opening) = TildesFencedCodeOpeningSegment::parse(input)?;
         let mut content_segments = Vec::new();
         loop {
