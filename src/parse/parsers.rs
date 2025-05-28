@@ -1,7 +1,7 @@
 use super::predicates::is_space_or_tab;
 use parser::{
     IsEmpty, ItemsIndices, ParseResult, Parser, SplitAt, SubsetRange, TakeWhileParser, empty,
-    one_of, recognize, tag, take, take_while, validate,
+    maybe, one_of, recognize, tag, take, take_while, validate,
 };
 
 /// Parses any escaped character sequence.
@@ -44,14 +44,6 @@ where
     .parse(input)
 }
 
-/// Consumes any amount of spaces or tabs.
-///
-/// If the input doesn't start with a space or a tab, the parser will succeed and
-/// return an empty string as parsed.
-pub fn space_or_tab<I>() -> TakeWhileParser<I, impl Fn(char) -> bool> {
-    take_while(is_space_or_tab)
-}
-
 /// Consumes a line ending, which can be either `\n` or `\r\n`.
 ///
 /// This parser will fail if the input is empty or does not start with a line ending.
@@ -68,6 +60,24 @@ where
     I: IsEmpty + ItemsIndices<char> + SplitAt + Clone,
 {
     one_of((line_ending, empty)).parse(input)
+}
+
+/// Consumes any amount of spaces or tabs.
+///
+/// If the input doesn't start with a space or a tab, the parser will succeed and
+/// return an empty string as parsed.
+pub fn space_or_tab<I>() -> TakeWhileParser<I, impl Fn(char) -> bool> {
+    take_while(is_space_or_tab)
+}
+
+/// Consumes any amount of spaces and tabs, and optionally will include one line ending.
+///
+/// The spaces and tabs can come before or after the line ending.
+pub fn space_or_tab_and_up_to_1_line_ending<I>(input: I) -> ParseResult<I, I>
+where
+    I: ItemsIndices<char> + SubsetRange<I> + SplitAt + Clone + IsEmpty,
+{
+    recognize((space_or_tab(), maybe(line_ending), space_or_tab())).parse(input)
 }
 
 #[cfg(test)]
@@ -198,32 +208,6 @@ mod test {
         }
     }
 
-    mod space_or_tab {
-        use super::*;
-        use crate::parse::lines;
-
-        #[test]
-        fn should_work_with_empty_string() {
-            assert_eq!(Ok(("", "")), space_or_tab().parse(""));
-        }
-
-        #[test]
-        fn should_work_when_input_does_not_start_with_space_or_tab() {
-            assert_eq!(Ok(("abc", "")), space_or_tab().parse("abc"));
-        }
-
-        #[test]
-        fn should_work_with_spaces_or_tabs() {
-            assert_eq!(Ok(("toto", "  \t\t ")), space_or_tab().parse("  \t\t toto"));
-        }
-
-        #[test]
-        fn should_work_with_lines() {
-            let result = space_or_tab().parse(lines("  \t \n toto"));
-            assert_eq!(Ok((lines("\n toto"), lines("  \t "))), result);
-        }
-    }
-
     mod line_ending {
         use super::*;
         use crate::parse::lines;
@@ -283,6 +267,95 @@ mod test {
         fn should_work_with_lines() {
             let result = line_ending_or_empty(lines(""));
             assert_eq!(Ok((lines(""), lines(""))), result);
+        }
+    }
+
+    mod space_or_tab {
+        use super::*;
+        use crate::parse::lines;
+
+        #[test]
+        fn should_work_with_empty_string() {
+            assert_eq!(Ok(("", "")), space_or_tab().parse(""));
+        }
+
+        #[test]
+        fn should_work_when_input_does_not_start_with_space_or_tab() {
+            assert_eq!(Ok(("abc", "")), space_or_tab().parse("abc"));
+        }
+
+        #[test]
+        fn should_work_with_spaces_or_tabs() {
+            assert_eq!(Ok(("toto", "  \t\t ")), space_or_tab().parse("  \t\t toto"));
+        }
+
+        #[test]
+        fn should_work_with_lines() {
+            let result = space_or_tab().parse(lines("  \t \n toto"));
+            assert_eq!(Ok((lines("\n toto"), lines("  \t "))), result);
+        }
+    }
+
+    mod space_or_tab_and_up_to_1_line_ending {
+        use super::*;
+        use crate::parse::lines;
+
+        #[test]
+        fn should_work_with_empty_string() {
+            assert_eq!(Ok(("", "")), space_or_tab_and_up_to_1_line_ending(""));
+        }
+
+        #[test]
+        fn should_not_consume_anything_if_input_does_not_start_with_whitespace() {
+            assert_eq!(Ok(("abc", "")), space_or_tab_and_up_to_1_line_ending("abc"));
+        }
+
+        #[test]
+        fn should_work_with_spaces_and_tabs() {
+            assert_eq!(
+                Ok(("toto", "  \t\t ")),
+                space_or_tab_and_up_to_1_line_ending("  \t\t toto")
+            );
+        }
+
+        #[test]
+        fn should_work_with_spaces_before_line_ending() {
+            assert_eq!(
+                Ok(("toto", "  \t\t \n")),
+                space_or_tab_and_up_to_1_line_ending("  \t\t \ntoto")
+            );
+        }
+
+        #[test]
+        fn should_work_with_spaces_after_line_ending() {
+            assert_eq!(
+                Ok(("toto", "\n  \t\t ")),
+                space_or_tab_and_up_to_1_line_ending("\n  \t\t toto")
+            );
+        }
+
+        #[test]
+        fn should_work_with_spaces_around_line_ending() {
+            assert_eq!(
+                Ok(("toto", "  \t\t \n  \t\t  ")),
+                space_or_tab_and_up_to_1_line_ending("  \t\t \n  \t\t  toto")
+            );
+        }
+
+        #[test]
+        fn should_consume_at_most_one_line_ending() {
+            assert_eq!(
+                Ok(("\n  toto", "  \t\t \n  \t\t")),
+                space_or_tab_and_up_to_1_line_ending("  \t\t \n  \t\t\n  toto")
+            );
+        }
+
+        #[test]
+        fn should_work_with_lines() {
+            assert_eq!(
+                Ok((lines("\n  toto"), lines("  \t\t \n  \t\t"))),
+                space_or_tab_and_up_to_1_line_ending(lines("  \t\t \n  \t\t\n  toto"))
+            );
         }
     }
 }
