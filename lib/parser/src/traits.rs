@@ -37,6 +37,24 @@ pub trait ItemsIndices<T>: Indexable {
     fn items(&self) -> Map<Self::ItemsIndices, impl FnMut((Self::Index, T)) -> T> {
         self.items_indices().map(|(_, item)| item)
     }
+
+    /// Returns the index that immediately follows the provided prefix.
+    ///
+    /// This function returns None if the prefix does not match items in sequence.
+    fn after_prefix<U>(&self, prefix: U) -> Option<Self::Index>
+    where
+        U: IntoIterator<Item = T>,
+        T: PartialEq,
+    {
+        let mut enumerator = self.enumerate();
+        for item in prefix {
+            match enumerator.next() {
+                Some((_, i)) if i == item => {}
+                _ => return None,
+            }
+        }
+        Some(enumerator.next_index())
+    }
 }
 
 pub struct Enumerator<I: Iterator, Index> {
@@ -80,14 +98,6 @@ where
 
 pub trait SplitAt: Indexable + Sized {
     fn split_at(&self, index: Self::Index) -> (Self, Self);
-}
-
-// TODO: this can be implemented with ItemsIndices trait.
-pub trait PrefixEnd<T>: Indexable {
-    /// If the input starts with the provided prefix, it will return the index immediately after.
-    ///
-    /// If the input does not start with the provided prefix, it will return None.
-    fn prefix_end(&self, tag: T) -> Option<Self::Index>;
 }
 
 pub trait SubsetRange<T>: Indexable {

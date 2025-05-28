@@ -1,5 +1,5 @@
 use super::input::Input;
-use parser::{Indexable, IsEmpty, ItemsIndices, PrefixEnd, SplitAt, SubsetRange};
+use parser::{Indexable, IsEmpty, ItemsIndices, SplitAt, SubsetRange};
 use std::str::{CharIndices, SplitInclusive};
 
 pub fn lines<'a, T: Into<Lines<'a>>>(source: T) -> Lines<'a> {
@@ -49,12 +49,6 @@ impl<'a> ItemsIndices<char> for Lines<'a> {
 
     fn items_indices(&self) -> Self::ItemsIndices {
         self.source.items_indices()
-    }
-}
-
-impl<'a> PrefixEnd<&'a str> for Lines<'a> {
-    fn prefix_end(&self, tag: &'a str) -> Option<Self::Index> {
-        self.source.prefix_end(tag)
     }
 }
 

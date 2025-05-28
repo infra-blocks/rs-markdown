@@ -1,30 +1,35 @@
-use super::{Parser, PrefixEnd, SplitAt, utils::Reverse};
-use crate::ParseResult;
+use super::{Parser, SplitAt, utils::Reverse};
+use crate::{ItemsIndices, ParseResult};
 
-pub fn tag<T>(tag: T) -> TagParser<T> {
+pub fn tag<T, U>(tag: T) -> TagParser<T, U> {
     TagParser::new(tag)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct TagParser<T> {
+pub struct TagParser<T, U> {
     tag: T,
+    _phantom: std::marker::PhantomData<U>,
 }
 
-impl<T> TagParser<T> {
+impl<T, U> TagParser<T, U> {
     fn new(tag: T) -> Self {
-        Self { tag }
+        Self {
+            tag,
+            _phantom: std::marker::PhantomData,
+        }
     }
 }
 
-impl<I, T> Parser<I> for TagParser<T>
+impl<I, T, U> Parser<I> for TagParser<T, U>
 where
-    I: SplitAt + PrefixEnd<T>,
-    T: Clone,
+    U: PartialEq,
+    I: SplitAt + ItemsIndices<U>,
+    T: ItemsIndices<U>,
 {
     type Output = I;
 
     fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
-        match input.prefix_end(self.tag.clone()) {
+        match input.after_prefix(self.tag.items()) {
             Some(index) => Ok(input.split_at(index).reverse()),
             None => Err(input),
         }

@@ -1,7 +1,7 @@
 use super::predicates::is_space_or_tab;
 use parser::{
-    IsEmpty, ItemsIndices, ParseResult, Parser, PrefixEnd, SplitAt, SubsetRange, TakeWhileParser,
-    empty, one_of, recognize, tag, take, take_while, validate,
+    IsEmpty, ItemsIndices, ParseResult, Parser, SplitAt, SubsetRange, TakeWhileParser, empty,
+    one_of, recognize, tag, take, take_while, validate,
 };
 
 /// Parses any escaped character sequence.
@@ -11,7 +11,7 @@ use parser::{
 /// takes 2 characters or fails.
 pub fn escaped_sequence<I>(input: I) -> ParseResult<I, I>
 where
-    I: SubsetRange<I> + SplitAt + Clone + IsEmpty + PrefixEnd<&'static str> + ItemsIndices<char>,
+    I: SubsetRange<I> + SplitAt + Clone + IsEmpty + ItemsIndices<char>,
 {
     recognize((tag("\\"), take(1))).parse(input)
 }
@@ -55,17 +55,17 @@ pub fn space_or_tab<I>() -> TakeWhileParser<I, impl Fn(char) -> bool> {
 /// Consumes a line ending, which can be either `\n` or `\r\n`.
 ///
 /// This parser will fail if the input is empty or does not start with a line ending.
-pub fn line_ending<'a, I>(input: I) -> ParseResult<I, I>
+pub fn line_ending<I>(input: I) -> ParseResult<I, I>
 where
-    I: PrefixEnd<&'a str> + SplitAt,
+    I: ItemsIndices<char> + SplitAt,
 {
     one_of((tag("\n"), tag("\r\n"))).parse(input)
 }
 
 /// Consumes either a line ending or the end of the input.
-pub fn line_ending_or_empty<'a, I>(input: I) -> ParseResult<I, I>
+pub fn line_ending_or_empty<I>(input: I) -> ParseResult<I, I>
 where
-    I: IsEmpty + PrefixEnd<&'a str> + SplitAt + Clone,
+    I: IsEmpty + ItemsIndices<char> + SplitAt + Clone,
 {
     one_of((line_ending, empty)).parse(input)
 }
