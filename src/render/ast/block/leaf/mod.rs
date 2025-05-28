@@ -1,6 +1,7 @@
 mod atx_heading;
 mod blank_line;
 mod fenced_code;
+mod html;
 mod indented_code;
 mod link_reference_definition;
 mod thematic_break;
@@ -26,6 +27,7 @@ impl DisplayHtml for Leaf<'_> {
             Leaf::FencedCode(fenced_code) => {
                 fenced_code.display_html(buffer, link_reference_definitions)
             }
+            Leaf::Html(html) => html.display_html(buffer, link_reference_definitions),
             Leaf::IndentedCode(indented_code) => {
                 indented_code.display_html(buffer, link_reference_definitions)
             }

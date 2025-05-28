@@ -5,13 +5,14 @@ use crate::{
     },
     parse::{
         input::Input,
-        parsers::{indented_by_less_than_4, line_ending, line_ending_or_empty, space_or_tab},
+        parsers::{
+            indented_by_less_than_4, line_ending_or_empty, space_or_tab,
+            space_or_tab_and_up_to_1_line_ending,
+        },
         traits::Parse,
     },
 };
-use parser::{
-    ItemsIndices, Map, ParseResult, Parser, consumed, maybe, one_of, recognize, tag, validate,
-};
+use parser::{ItemsIndices, Map, ParseResult, Parser, consumed, one_of, tag, validate};
 
 /// Parses the link label in the context of the link reference definition.
 ///
@@ -27,13 +28,8 @@ fn label<'a, I: Input<'a>>(input: I) -> ParseResult<I, LinkLabel<'a>> {
 ///
 /// Consumes all spaces or tabs, and optionally a line ending, then dispatches to [LinkDestination::parse].
 fn destination<'a, I: Input<'a>>(input: I) -> ParseResult<I, LinkDestination<'a>> {
-    (
-        space_or_tab(),
-        maybe(line_ending),
-        space_or_tab(),
-        LinkDestination::parse,
-    )
-        .map(|(_, _, _, destination)| destination)
+    (space_or_tab_and_up_to_1_line_ending, LinkDestination::parse)
+        .map(|(_, destination)| destination)
         .parse(input)
 }
 
@@ -45,10 +41,9 @@ fn destination<'a, I: Input<'a>>(input: I) -> ParseResult<I, LinkDestination<'a>
 /// If any of those things is not satisfied, the parser will fail.
 fn title<'a, I: Input<'a>>(input: I) -> ParseResult<I, LinkTitle<'a>> {
     (
-        validate(
-            recognize((space_or_tab(), maybe(line_ending), space_or_tab())),
-            |parsed: &I| !parsed.is_empty(),
-        ),
+        validate(space_or_tab_and_up_to_1_line_ending, |parsed: &I| {
+            !parsed.is_empty()
+        }),
         LinkTitle::parse,
         // No further character may occur after the title, if there.
         space_or_tab(),
