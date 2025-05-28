@@ -1,6 +1,7 @@
 mod atx_heading;
 mod blank_line;
 mod fenced_code;
+mod html;
 mod indented_code;
 mod link_reference_definition;
 mod setext_heading;
@@ -10,6 +11,7 @@ use crate::Segments;
 pub use atx_heading::*;
 pub use blank_line::*;
 pub use fenced_code::*;
+pub use html::*;
 pub use indented_code::*;
 pub use link_reference_definition::*;
 pub use setext_heading::*;
