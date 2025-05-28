@@ -1,4 +1,4 @@
-use parser::{IsEmpty, ItemsIndices, PrefixEnd, SplitAt, SubsetRange};
+use parser::{IsEmpty, ItemsIndices, SplitAt, SubsetRange};
 use std::fmt::Debug;
 
 /// A trait to regroup different all the different requirements to use all parser functionalities.
@@ -8,7 +8,6 @@ where
         + ItemsIndices<char>
         + SubsetRange<Self>
         + SubsetRange<&'a str>
-        + PrefixEnd<&'a str>
         + SplitAt
         + Clone
         + Debug

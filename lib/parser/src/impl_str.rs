@@ -1,4 +1,4 @@
-use super::{Index, Indexable, IsEmpty, ItemsIndices, PrefixEnd, SplitAt, SubsetRange};
+use super::{Index, Indexable, IsEmpty, ItemsIndices, SplitAt, SubsetRange};
 use std::str::CharIndices;
 
 impl Index for usize {}
@@ -22,24 +22,6 @@ impl<'a> ItemsIndices<char> for &'a str {
 impl SplitAt for &str {
     fn split_at(&self, index: Self::Index) -> (Self, Self) {
         (self as &str).split_at(index)
-    }
-}
-
-impl PrefixEnd<char> for &str {
-    fn prefix_end(&self, tag: char) -> Option<Self::Index> {
-        if self.chars().next()? == tag {
-            return Some(1);
-        }
-        None
-    }
-}
-
-impl PrefixEnd<&str> for &str {
-    fn prefix_end(&self, tag: &str) -> Option<Self::Index> {
-        if self.starts_with(tag) {
-            return Some(tag.len());
-        }
-        None
     }
 }
 
