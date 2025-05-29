@@ -1,9 +1,10 @@
 mod and;
+mod any_tag;
 mod consumed;
+mod default_impls;
 mod empty;
 #[cfg(test)]
 mod fail;
-mod impl_str;
 mod map;
 mod maybe;
 mod one_of;
@@ -22,6 +23,7 @@ mod utils;
 mod validate;
 
 pub use and::*;
+pub use any_tag::*;
 pub use consumed::*;
 pub use empty::*;
 #[cfg(test)]
