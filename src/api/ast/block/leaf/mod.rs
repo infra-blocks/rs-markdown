@@ -4,6 +4,7 @@ mod fenced_code;
 mod html;
 mod indented_code;
 mod link_reference_definition;
+mod paragraph;
 mod setext_heading;
 mod thematic_break;
 
@@ -14,6 +15,7 @@ pub use fenced_code::*;
 pub use html::*;
 pub use indented_code::*;
 pub use link_reference_definition::*;
+pub use paragraph::*;
 pub use setext_heading::*;
 use std::iter::FusedIterator;
 pub use thematic_break::*;
