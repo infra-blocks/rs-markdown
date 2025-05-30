@@ -195,6 +195,134 @@ aaa
     );
 }*/
 
+mod html {
+    use super::*;
+
+    test!(
+        example_150,
+        r" <div>
+  *hello*
+         <foo><a>",
+        r" <div>
+  *hello*
+         <foo><a>"
+    );
+    test!(
+        example_151,
+        r"</div>
+*foo*",
+        r"</div>
+*foo*"
+    );
+    test!(
+        example_153,
+        r#"<div id="foo"
+  class="bar">
+</div>"#,
+        r#"<div id="foo"
+  class="bar">
+</div>"#
+    );
+    test!(
+        example_154,
+        r#"<div id="foo" class="bar
+  baz">
+</div>"#,
+        r#"<div id="foo" class="bar
+  baz">
+</div>"#
+    );
+    test!(
+        example_156,
+        r#"<div id="foo"
+*hi*"#,
+        r#"<div id="foo"
+*hi*"#
+    );
+    test!(
+        example_157,
+        r#"<div class
+foo"#,
+        r#"<div class
+foo"#
+    );
+    test!(
+        example_158,
+        r#"<div *???-&&&-<---
+*foo*"#,
+        r#"<div *???-&&&-<---
+*foo*"#
+    );
+    test!(
+        example_159,
+        r#"<div><a href="bar">*foo*</a></div>"#,
+        r#"<div><a href="bar">*foo*</a></div>"#
+    );
+    test!(
+        example_160,
+        r#"<table><tr><td>
+foo
+</td></tr></table>"#,
+        r#"<table><tr><td>
+foo
+</td></tr></table>"#
+    );
+    test!(
+        example_161,
+        r#"<div></div>
+``` c
+int x = 33;
+```"#,
+        r#"<div></div>
+``` c
+int x = 33;
+```"#
+    );
+    test!(
+        example_162,
+        r#"<a href="foo">
+*bar*
+</a>"#,
+        r#"<a href="foo">
+*bar*
+</a>"#
+    );
+    test!(
+        example_163,
+        r#"<Warning>
+*bar*
+</Warning>"#,
+        r#"<Warning>
+*bar*
+</Warning>"#
+    );
+    test!(
+        example_164,
+        r#"<i class="foo">
+*bar*
+</i>"#,
+        r#"<i class="foo">
+*bar*
+</i>"#
+    );
+    test!(
+        example_165,
+        r#"</ins>
+*bar*"#,
+        r#"</ins>
+*bar*"#
+    );
+    test!(
+        example_166,
+        r#"<del>
+*foo*
+</del>"#,
+        r#"<del>
+*foo*
+</del>"#
+    );
+}
+
 mod indented_code {
     use super::*;
 

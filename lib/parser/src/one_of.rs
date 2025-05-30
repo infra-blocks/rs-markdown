@@ -84,6 +84,99 @@ where
     }
 }
 
+impl<I, T1, T2, T3, T4, T5, T6> Parser<I> for OneOfParser<(T1, T2, T3, T4, T5, T6)>
+where
+    T1: Parser<I>,
+    T2: Parser<I, Output = T1::Output>,
+    T3: Parser<I, Output = T1::Output>,
+    T4: Parser<I, Output = T1::Output>,
+    T5: Parser<I, Output = T1::Output>,
+    T6: Parser<I, Output = T1::Output>,
+{
+    type Output = T1::Output;
+
+    fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
+        let first = |input: I| self.parsers.0.parse(input);
+        let second = |input: I| self.parsers.1.parse(input);
+        let third = |input: I| self.parsers.2.parse(input);
+        let fourth = |input: I| self.parsers.3.parse(input);
+        let fifth = |input: I| self.parsers.4.parse(input);
+        let sixth = |input: I| self.parsers.5.parse(input);
+        first
+            .or(second)
+            .or(third)
+            .or(fourth)
+            .or(fifth)
+            .or(sixth)
+            .parse(input)
+    }
+}
+
+impl<I, T1, T2, T3, T4, T5, T6, T7> Parser<I> for OneOfParser<(T1, T2, T3, T4, T5, T6, T7)>
+where
+    T1: Parser<I>,
+    T2: Parser<I, Output = T1::Output>,
+    T3: Parser<I, Output = T1::Output>,
+    T4: Parser<I, Output = T1::Output>,
+    T5: Parser<I, Output = T1::Output>,
+    T6: Parser<I, Output = T1::Output>,
+    T7: Parser<I, Output = T1::Output>,
+{
+    type Output = T1::Output;
+
+    fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
+        let first = |input: I| self.parsers.0.parse(input);
+        let second = |input: I| self.parsers.1.parse(input);
+        let third = |input: I| self.parsers.2.parse(input);
+        let fourth = |input: I| self.parsers.3.parse(input);
+        let fifth = |input: I| self.parsers.4.parse(input);
+        let sixth = |input: I| self.parsers.5.parse(input);
+        let seventh = |input: I| self.parsers.6.parse(input);
+        first
+            .or(second)
+            .or(third)
+            .or(fourth)
+            .or(fifth)
+            .or(sixth)
+            .or(seventh)
+            .parse(input)
+    }
+}
+
+impl<I, T1, T2, T3, T4, T5, T6, T7, T8> Parser<I> for OneOfParser<(T1, T2, T3, T4, T5, T6, T7, T8)>
+where
+    T1: Parser<I>,
+    T2: Parser<I, Output = T1::Output>,
+    T3: Parser<I, Output = T1::Output>,
+    T4: Parser<I, Output = T1::Output>,
+    T5: Parser<I, Output = T1::Output>,
+    T6: Parser<I, Output = T1::Output>,
+    T7: Parser<I, Output = T1::Output>,
+    T8: Parser<I, Output = T1::Output>,
+{
+    type Output = T1::Output;
+
+    fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
+        let first = |input: I| self.parsers.0.parse(input);
+        let second = |input: I| self.parsers.1.parse(input);
+        let third = |input: I| self.parsers.2.parse(input);
+        let fourth = |input: I| self.parsers.3.parse(input);
+        let fifth = |input: I| self.parsers.4.parse(input);
+        let sixth = |input: I| self.parsers.5.parse(input);
+        let seventh = |input: I| self.parsers.6.parse(input);
+        let eighth = |input: I| self.parsers.7.parse(input);
+        first
+            .or(second)
+            .or(third)
+            .or(fourth)
+            .or(fifth)
+            .or(sixth)
+            .or(seventh)
+            .or(eighth)
+            .parse(input)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -122,6 +215,51 @@ mod test {
     #[test]
     fn should_work_with_4_parsers() {
         let parser = one_of((fail!(), fail!(), fail!(), take(4)));
+        let result = parser.parse("test1234");
+        assert_eq!(Ok(("1234", "test")), result);
+    }
+
+    #[test]
+    fn should_work_with_5_parsers() {
+        let parser = one_of((fail!(), fail!(), fail!(), fail!(), take(4)));
+        let result = parser.parse("test1234");
+        assert_eq!(Ok(("1234", "test")), result);
+    }
+
+    #[test]
+    fn should_work_with_6_parsers() {
+        let parser = one_of((fail!(), fail!(), fail!(), fail!(), fail!(), take(4)));
+        let result = parser.parse("test1234");
+        assert_eq!(Ok(("1234", "test")), result);
+    }
+
+    #[test]
+    fn should_work_with_7_parsers() {
+        let parser = one_of((
+            fail!(),
+            fail!(),
+            fail!(),
+            fail!(),
+            fail!(),
+            fail!(),
+            take(4),
+        ));
+        let result = parser.parse("test1234");
+        assert_eq!(Ok(("1234", "test")), result);
+    }
+
+    #[test]
+    fn should_work_with_8_parsers() {
+        let parser = one_of((
+            fail!(),
+            fail!(),
+            fail!(),
+            fail!(),
+            fail!(),
+            fail!(),
+            fail!(),
+            take(4),
+        ));
         let result = parser.parse("test1234");
         assert_eq!(Ok(("1234", "test")), result);
     }

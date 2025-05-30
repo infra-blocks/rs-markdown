@@ -1,6 +1,7 @@
 mod atx_heading;
 mod blank_line;
 mod fenced_code;
+mod html;
 mod indented_code;
 mod link_reference_definition;
 mod setext_heading;
@@ -10,6 +11,7 @@ use crate::Segments;
 pub use atx_heading::*;
 pub use blank_line::*;
 pub use fenced_code::*;
+pub use html::*;
 pub use indented_code::*;
 pub use link_reference_definition::*;
 pub use setext_heading::*;
@@ -21,6 +23,7 @@ pub enum Leaf<'a> {
     AtxHeading(AtxHeading<'a>),
     BlankLine(BlankLine<'a>),
     FencedCode(FencedCode<'a>),
+    Html(Html<'a>),
     IndentedCode(IndentedCode<'a>),
     LinkReferenceDefinition(LinkReferenceDefinition<'a>),
     ThematicBreak(thematic_break::ThematicBreak<'a>),
@@ -51,6 +54,7 @@ impl<'a> From<&'a Leaf<'a>> for LeafSegmentsIterator<'a> {
             Leaf::AtxHeading(heading) => Self::new(Box::new(heading.segments())),
             Leaf::BlankLine(blank_line) => Self::new(Box::new(blank_line.segments())),
             Leaf::FencedCode(fenced_code) => Self::new(Box::new(fenced_code.segments())),
+            Leaf::Html(html) => Self::new(Box::new(html.segments())),
             Leaf::IndentedCode(indented_code) => Self::new(Box::new(indented_code.segments())),
             Leaf::LinkReferenceDefinition(_link_reference_definition) => {
                 unimplemented!("LinkReferenceDefinition text() not implemented")
