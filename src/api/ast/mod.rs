@@ -29,8 +29,7 @@ impl<'a> From<Vec<Block<'a>>> for Document<'a> {
     fn from(blocks: Vec<Block<'a>>) -> Self {
         let mut link_reference_definitions = vec![];
         for block in &blocks {
-            let Block::Leaf(leaf) = block;
-            if let Leaf::LinkReferenceDefinition(link_reference_definition) = leaf {
+            if let Block::Leaf(Leaf::LinkReferenceDefinition(link_reference_definition)) = block {
                 link_reference_definitions.push(link_reference_definition.clone());
             }
         }

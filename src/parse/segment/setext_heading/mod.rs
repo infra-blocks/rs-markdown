@@ -4,7 +4,7 @@ mod hyphens;
 use crate::{Segment, parse::traits::ParseLine};
 pub use equals::*;
 pub use hyphens::*;
-use parser::{Map, Parser, one_of};
+use parser::{Map, ParseResult, Parser, one_of};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SetextHeadingUnderlineSegment<'a> {
@@ -33,13 +33,17 @@ impl<'a> From<SetextHeadingHyphensUnderlineSegment<'a>> for SetextHeadingUnderli
     }
 }
 
+pub fn setext_heading_underline(input: &str) -> ParseResult<&str, SetextHeadingUnderlineSegment> {
+    one_of((
+        SetextHeadingEqualsUnderlineSegment::parse_line.map(SetextHeadingUnderlineSegment::from),
+        SetextHeadingHyphensUnderlineSegment::parse_line.map(SetextHeadingUnderlineSegment::from),
+    ))
+    .parse(input)
+}
+
 impl<'a> ParseLine<'a> for SetextHeadingUnderlineSegment<'a> {
-    fn parse_line(input: &'a str) -> parser::ParseResult<&'a str, Self> {
-        one_of((
-            SetextHeadingEqualsUnderlineSegment::parse_line.map(Self::from),
-            SetextHeadingHyphensUnderlineSegment::parse_line.map(Self::from),
-        ))
-        .parse(input)
+    fn parse_line(input: &'a str) -> ParseResult<&'a str, Self> {
+        setext_heading_underline(input)
     }
 }
 

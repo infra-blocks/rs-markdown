@@ -13,6 +13,9 @@ impl DisplayHtml for Block<'_> {
         link_reference_definitions: &[LinkReferenceDefinition],
     ) {
         match self {
+            Block::Container(container) => {
+                container.display_html(buffer, link_reference_definitions)
+            }
             Block::Leaf(leaf) => leaf.display_html(buffer, link_reference_definitions),
         }
     }

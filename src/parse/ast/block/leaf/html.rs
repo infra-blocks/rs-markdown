@@ -8,9 +8,10 @@ use crate::{
     },
 };
 use parser::{
-    Map, ParseResult, Parser, any_tag, empty, is_one_of, one_of, recognize, tag, take, take_while,
-    validate,
+    Map, ParseResult, Parser, any_tag, empty, is, is_one_of, maybe, one_of, recognize, rest, tag,
+    take, take_while, validate,
 };
+use std::result;
 
 const CASE_1_TAG_NAMES: [&str; 4] = ["pre", "script", "style", "textarea"];
 const CASE_6_TAG_NAMES: [&str; 62] = [
@@ -94,29 +95,36 @@ impl<'a> Parse<'a> for Html<'a> {
 ///   followed by a space, a tab, the string >, or the end of the line.
 /// - End condition: line contains an end tag </pre>, </script>, </style>, or </textarea> (case-insensitive; it need not match the start tag).
 fn case_1<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
-    let start = |s: &str| {
-        (
-            tag("<"),
-            validate(utils::tag_name, |tag_name: &&str| {
-                CASE_1_TAG_NAMES
-                    .iter()
-                    .any(|name| name.eq_ignore_ascii_case(tag_name))
-            }),
-            one_of((take(1).that(is_one_of(&[' ', '\t', '\n', '>'])), empty)),
-        )
-            .parse(s)
-            .is_ok()
-    };
-    let end = |s: &str| {
-        // TODO: this can avoid allocation by using a custom built function that iterates over the string.
-        let s = s.to_lowercase();
-        s.contains("</pre>")
-            || s.contains("</script>")
-            || s.contains("</style>")
-            || s.contains("</textarea>")
-    };
-
+    let start = |s: &str| is(case_1_opening_segment)(s);
+    let end = |s: &str| is(case_1_closing_segment)(s);
     utils::within_conditions(start, end).parse(input)
+}
+
+pub fn case_1_opening_segment(input: &str) -> ParseResult<&str, &str> {
+    recognize((
+        tag("<"),
+        validate(utils::tag_name, |tag_name: &&str| {
+            CASE_1_TAG_NAMES
+                .iter()
+                .any(|name| name.eq_ignore_ascii_case(tag_name))
+        }),
+        one_of((take(1).that(is_one_of(&[' ', '\t', '\n', '>'])), empty)),
+    ))
+    .parse(input)
+}
+
+fn case_1_closing_segment(input: &str) -> ParseResult<&str, &str> {
+    // This is a helper function to check if the input is a valid end condition for case 1.
+    let s = input.to_lowercase();
+    if s.contains("</pre>")
+        || s.contains("</script>")
+        || s.contains("</style>")
+        || s.contains("</textarea>")
+    {
+        rest(input)
+    } else {
+        Err(input)
+    }
 }
 
 /// This is case 2 in the spec, and covers lines with the following
@@ -124,7 +132,25 @@ fn case_1<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
 /// - Start condition: line begins with the string <!--.
 /// - End condition: line contains the string -->.
 fn case_2<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
-    utils::within_conditions(|s| s.starts_with("<!--"), |s| s.contains("-->")).parse(input)
+    let start = |s: &str| is(case_2_opening_segment)(s);
+    let end = |s: &str| is(case_2_closing_segment)(s);
+    utils::within_conditions(start, end).parse(input)
+}
+
+pub fn case_2_opening_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.starts_with("<!--") {
+        rest(input)
+    } else {
+        Err(input)
+    }
+}
+
+fn case_2_closing_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.contains("-->") {
+        rest(input)
+    } else {
+        Err(input)
+    }
 }
 
 /// This is case 3 in the spec, and covers lines with the following
@@ -132,7 +158,25 @@ fn case_2<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
 /// - Start condition: line begins with the string <?.
 /// - End condition: line contains the string ?>.
 fn case_3<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
-    utils::within_conditions(|s| s.starts_with("<?"), |s| s.contains("?>")).parse(input)
+    let start = |s: &str| is(case_3_opening_segment)(s);
+    let end = |s: &str| is(case_3_closing_segment)(s);
+    utils::within_conditions(start, end).parse(input)
+}
+
+pub fn case_3_opening_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.starts_with("<?") {
+        rest(input)
+    } else {
+        Err(input)
+    }
+}
+
+fn case_3_closing_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.contains("?>") {
+        rest(input)
+    } else {
+        Err(input)
+    }
 }
 
 /// This is case 4 in the spec, and covers lines with the following
@@ -140,16 +184,30 @@ fn case_3<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
 /// - Start condition: line begins with the string <! followed by an ASCII letter.
 /// - End condition: line contains the string >.
 fn case_4<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
-    utils::within_conditions(
-        |s| {
-            s.starts_with("<!")
-                && s.chars()
-                    .nth(2)
-                    .map_or_else(|| false, |c| c.is_ascii_alphabetic())
-        },
-        |s| s.contains('>'),
-    )
-    .parse(input)
+    let start = |s: &str| is(case_4_opening_segment)(s);
+    let end = |s: &str| is(case_4_closing_segment)(s);
+    utils::within_conditions(start, end).parse(input)
+}
+
+pub fn case_4_opening_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.starts_with("<!")
+        && input
+            .chars()
+            .nth(2)
+            .map_or(false, |c| c.is_ascii_alphabetic())
+    {
+        rest(input)
+    } else {
+        Err(input)
+    }
+}
+
+fn case_4_closing_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.contains('>') {
+        rest(input)
+    } else {
+        Err(input)
+    }
 }
 
 /// This is case 5 in the spec, and covers lines with the following
@@ -157,11 +215,25 @@ fn case_4<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
 /// - Start condition: line begins with the string <![CDATA[.
 /// - End condition: line contains the string ]]>.
 fn case_5<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
-    // This is not part of the spec, but it is a common case.
-    // It covers lines with the following start and end conditions:
-    // - Start condition: line begins with the string <![CDATA[.
-    // - End condition: line contains the string ]]>.
-    utils::within_conditions(|s| s.starts_with("<![CDATA["), |s| s.contains("]]>")).parse(input)
+    let start = |s: &str| is(case_5_opening_segment)(s);
+    let end = |s: &str| is(case_5_closing_segment)(s);
+    utils::within_conditions(start, end).parse(input)
+}
+
+pub fn case_5_opening_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.starts_with("<![CDATA[") {
+        rest(input)
+    } else {
+        Err(input)
+    }
+}
+
+fn case_5_closing_segment(input: &str) -> ParseResult<&str, &str> {
+    if input.contains("]]>") {
+        rest(input)
+    } else {
+        Err(input)
+    }
 }
 
 /// This is case 6 in the spec, and covers lines with the following
@@ -174,23 +246,29 @@ fn case_5<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
 ///   the end of the line, the string >, or the string />.
 /// - End condition: line is followed by a blank line.
 fn case_6<'a, I: Input<'a>>(input: I) -> ParseResult<I, I> {
-    let start = |s: &str| {
-        (
-            one_of((
-                (tag("<"), any_tag(&CASE_6_TAG_NAMES)),
-                (tag("</"), any_tag(&CASE_6_TAG_NAMES)),
-            )),
-            one_of((
-                take(1).that(is_one_of(&[' ', '\t', '\n', '>'])),
-                tag("/>"),
-                empty,
-            )),
-        )
-            .parse(s.to_lowercase().as_str())
-            .is_ok()
-    };
+    let start = |s: &str| is(case_6_opening_segment)(s);
     // Because this particular case needs to check the next line, we don't reuse the `within_conditions` function.
     recognize((take(1).that(start), take_while(|s: &str| !is_blank_line(s)))).parse(input)
+}
+
+pub fn case_6_opening_segment(input: &str) -> ParseResult<&str, &str> {
+    recognize((
+        (
+            tag("<"),
+            maybe(tag("/")),
+            validate(utils::tag_name, |tag_name: &&str| {
+                CASE_6_TAG_NAMES
+                    .iter()
+                    .any(|name| name.eq_ignore_ascii_case(tag_name))
+            }),
+        ),
+        one_of((
+            take(1).that(is_one_of(&[' ', '\t', '\n', '>'])),
+            tag("/>"),
+            empty,
+        )),
+    ))
+    .parse(input)
 }
 
 /// This is case 7 in the spec, and covers lines with the following

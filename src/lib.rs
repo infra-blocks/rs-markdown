@@ -1,4 +1,5 @@
 mod api;
+pub(crate) mod build;
 pub(crate) mod parse;
 pub mod render;
 

@@ -1,6 +1,7 @@
 mod container;
 mod leaf;
 
+pub use container::*;
 pub use leaf::*;
 
 use crate::Segments;
@@ -8,7 +9,20 @@ use std::iter::FusedIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Block<'a> {
+    Container(Container<'a>),
     Leaf(Leaf<'a>),
+}
+
+impl<'a> From<Container<'a>> for Block<'a> {
+    fn from(container: Container<'a>) -> Self {
+        Self::Container(container)
+    }
+}
+
+impl<'a> From<BlockQuote<'a>> for Block<'a> {
+    fn from(block_quote: BlockQuote<'a>) -> Self {
+        Self::Container(block_quote.into())
+    }
 }
 
 impl<'a> Segments<'a> for Block<'a> {
@@ -33,6 +47,7 @@ impl<'a> BlockSegmentsIterator<'a> {
 impl<'a> From<&'a Block<'a>> for BlockSegmentsIterator<'a> {
     fn from(block: &'a Block) -> Self {
         match block {
+            Block::Container(container) => Self::new(Box::new(container.segments())),
             Block::Leaf(leaf) => Self::new(Box::new(leaf.segments())),
         }
     }
