@@ -7,13 +7,13 @@ use block::{Block, Leaf, LinkReferenceDefinition};
 use std::iter::FusedIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Tree<'a> {
+pub struct Document<'a> {
     /// TODO: hide those behind an interface.
     pub(crate) blocks: Vec<Block<'a>>,
     pub(crate) link_reference_definitions: Vec<LinkReferenceDefinition<'a>>,
 }
 
-impl<'a> Tree<'a> {
+impl<'a> Document<'a> {
     pub(crate) fn new(
         blocks: Vec<Block<'a>>,
         link_reference_definitions: Vec<LinkReferenceDefinition<'a>>,
@@ -25,7 +25,7 @@ impl<'a> Tree<'a> {
     }
 }
 
-impl<'a> From<Vec<Block<'a>>> for Tree<'a> {
+impl<'a> From<Vec<Block<'a>>> for Document<'a> {
     fn from(blocks: Vec<Block<'a>>) -> Self {
         let mut link_reference_definitions = vec![];
         for block in &blocks {
@@ -39,35 +39,35 @@ impl<'a> From<Vec<Block<'a>>> for Tree<'a> {
     }
 }
 
-impl<'a> Segments<'a> for Tree<'a> {
-    type SegmentsIter = TreeSegmentsIterator<'a>;
+impl<'a> Segments<'a> for Document<'a> {
+    type SegmentsIter = DocumentSegmentsIterator<'a>;
 
     fn segments(&'a self) -> Self::SegmentsIter {
-        TreeSegmentsIterator::from(self)
+        DocumentSegmentsIterator::from(self)
     }
 }
 
 // TODO: statically type this iterator
-pub struct TreeSegmentsIterator<'a> {
+pub struct DocumentSegmentsIterator<'a> {
     iter: Box<dyn Iterator<Item = &'a str> + 'a>,
 }
 
-impl<'a> TreeSegmentsIterator<'a> {
+impl<'a> DocumentSegmentsIterator<'a> {
     fn new(iter: Box<dyn Iterator<Item = &'a str> + 'a>) -> Self {
         Self { iter }
     }
 }
 
-impl<'a> From<&'a Tree<'a>> for TreeSegmentsIterator<'a> {
-    fn from(tree: &'a Tree) -> Self {
+impl<'a> From<&'a Document<'a>> for DocumentSegmentsIterator<'a> {
+    fn from(tree: &'a Document) -> Self {
         let iter = tree.blocks.iter().flat_map(|block| block.segments());
         Self::new(Box::new(iter))
     }
 }
 
-impl FusedIterator for TreeSegmentsIterator<'_> {}
+impl FusedIterator for DocumentSegmentsIterator<'_> {}
 
-impl<'a> Iterator for TreeSegmentsIterator<'a> {
+impl<'a> Iterator for DocumentSegmentsIterator<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -75,7 +75,7 @@ impl<'a> Iterator for TreeSegmentsIterator<'a> {
     }
 }
 
-impl ToHtml for Tree<'_> {
+impl ToHtml for Document<'_> {
     fn to_html(&self) -> String {
         let mut buffer = String::new();
         self.display_html(&mut buffer, &self.link_reference_definitions);

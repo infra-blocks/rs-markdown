@@ -1,9 +1,9 @@
 mod block;
 
 use super::display_html::DisplayHtml;
-use crate::ast::{Tree, block::LinkReferenceDefinition};
+use crate::ast::{Document, block::LinkReferenceDefinition};
 
-impl DisplayHtml for Tree<'_> {
+impl DisplayHtml for Document<'_> {
     fn display_html(
         &self,
         buffer: &mut String,
