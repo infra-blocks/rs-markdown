@@ -1,6 +1,14 @@
+use crate::Parser;
+
 /// Returns a predicate that is true when the value equals the provided one.
 pub fn equals<T: PartialEq>(value: T) -> impl Fn(T) -> bool {
     move |i| i == value
+}
+
+/// Turns any parser into a predicate that returns whether the parse
+/// result is successful.
+pub fn is<P: Parser<I>, I>(parser: P) -> impl Fn(I) -> bool {
+    move |i| parser.parse(i).is_ok()
 }
 
 /// Returns a predicate that is true when the value matches one of the provided ones.
@@ -42,6 +50,23 @@ mod test {
             let predicate = equals("a");
             assert!(predicate("a"));
             assert!(!predicate("b"));
+        }
+    }
+
+    mod is {
+        use super::*;
+        use crate::tag;
+
+        #[test]
+        fn should_return_true_when_parser_succeeds() {
+            let predicate = is(tag("toto"));
+            assert!(predicate("toto toto"));
+        }
+
+        #[test]
+        fn should_return_false_when_parser_fails() {
+            let predicate = is(tag("toto"));
+            assert!(!predicate("tata"));
         }
     }
 
