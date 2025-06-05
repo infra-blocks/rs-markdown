@@ -8,6 +8,7 @@ use std::iter::FusedIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Block<'a> {
+    Container(Container<'a>),
     Leaf(Leaf<'a>),
 }
 

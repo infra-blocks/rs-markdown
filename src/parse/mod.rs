@@ -2,6 +2,7 @@ pub mod ast;
 pub mod input;
 mod lines;
 pub mod parsers;
+mod phase_1;
 pub mod predicates;
 pub mod segment;
 #[cfg(test)]
