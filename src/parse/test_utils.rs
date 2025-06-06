@@ -1,4 +1,6 @@
 use super::traits::Parse;
+use crate::parse::Lines;
+use parser::IsEmpty;
 use std::fmt::Debug;
 
 macro_rules! test_parse_macros {
@@ -41,9 +43,37 @@ macro_rules! test_parse_macros {
                 }
     };
 }
-use crate::parse::Lines;
-use parser::IsEmpty;
 pub(super) use test_parse_macros;
+
+macro_rules! test_parse_macros_2 {
+    ($parser:ident) => {
+        macro_rules! failure_case {
+            ($test:ident, $input:expr) => {
+                #[test]
+                fn $test() {
+                    let result = $parser($input);
+                    assert!(result.is_err(), "{:?}", result);
+                }
+            };
+        }
+
+        macro_rules! success_case {
+            ($test:ident, $input:expr) => {
+                success_case!($test, $input, $input, "");
+            };
+            ($test:ident, $input:expr, $parsed:expr) => {
+                success_case!($test, $input, $parsed, "");
+            };
+            ($test:ident, $input:expr, $parsed:expr, $remaining:expr) => {
+                #[test]
+                fn $test() {
+                    assert_eq!(Ok(($remaining, $parsed)), $parser($input));
+                }
+            };
+        }
+    };
+}
+pub(super) use test_parse_macros_2;
 
 #[cfg(test)]
 pub trait StrictParse<'a>
