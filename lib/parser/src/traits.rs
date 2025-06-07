@@ -1,4 +1,7 @@
-use std::iter::{Map, Peekable};
+use std::{
+    fmt::Debug,
+    iter::{Map, Peekable},
+};
 
 pub trait Parser<I> {
     type Output;
@@ -13,6 +16,23 @@ where
 
     fn parse(&self, input: I) -> ParseResult<I, Self::Output> {
         self(input)
+    }
+}
+
+pub trait StrictParse<I>: Parser<I> {
+    fn strict_parse(&self, input: I) -> Self::Output;
+}
+
+impl<I, T> StrictParse<I> for T
+where
+    T: Parser<I>,
+    I: Debug,
+{
+    fn strict_parse(&self, input: I) -> Self::Output {
+        match self.parse(input) {
+            Ok((_, output)) => output,
+            Err(rejected) => panic!("error strict parsing input: {:?}", rejected),
+        }
     }
 }
 
